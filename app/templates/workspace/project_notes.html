@@ -1,0 +1,51 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Notes · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <form class="glass filters" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search project notes">
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+  {% if can_contribute %}
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <h2>New project note</h2>
+    <label class="field"><span>Title</span><input name="title" required maxlength="140"></label>
+    <label class="field"><span>Note</span><textarea name="body" rows="4"></textarea></label>
+    <button class="btn btn-primary" type="submit">Save note</button>
+  </form>
+  {% endif %}
+  <div class="stack">
+    {% for note in notes %}
+    <article class="glass panel">
+      <header class="panel-head">
+        <div>
+          <h2>{{ note.title }}</h2>
+          <p class="muted">{{ note.user.name }} · {{ note.updated_at|ago }}</p>
+        </div>
+      </header>
+      <div class="rich">{{ note.body|rich }}</div>
+      {% if can_manage or note.user_id == current_user.id %}
+      <details class="details">
+        <summary>Edit note</summary>
+        <form method="post" action="{{ url_for('workspace.project_note_update', slug=project.slug, note_id=note.id) }}">
+          {{ csrf() }}
+          <label class="field"><span>Title</span><input name="title" required maxlength="140" value="{{ note.title }}"></label>
+          <label class="field"><span>Note</span><textarea name="body" rows="4">{{ note.body }}</textarea></label>
+          <button class="btn btn-primary btn-sm" type="submit">Save</button>
+        </form>
+        <form method="post" action="{{ url_for('workspace.project_note_delete', slug=project.slug, note_id=note.id) }}">
+          {{ csrf() }}
+          <button class="text-btn" type="submit">Delete</button>
+        </form>
+      </details>
+      {% endif %}
+    </article>
+    {% else %}
+    <article class="glass empty"><h3>{% if q %}No notes match that search{% else %}No project notes yet{% endif %}</h3><p>Personal notes stay on your own shelf. These belong to the project.</p></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

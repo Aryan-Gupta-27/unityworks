@@ -1,0 +1,27 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Private project · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <article class="glass panel">
+    <p class="eyebrow">Project</p>
+    <h1>{{ project.name }}</h1>
+    {% if work %}
+    <p>Files and notes stay with the team. Ask a member for an invite if you need to contribute.</p>
+    {% else %}
+    <p>This project is private. Only people on the team can open the workspace.</p>
+    {% endif %}
+    {% if pending %}
+    <form method="post" action="{{ url_for('workspace.project_respond', invite_id=pending.id) }}" class="row-actions">
+      {{ csrf() }}
+      <button class="btn btn-primary" name="status" value="accepted">Accept invite</button>
+      <button class="btn btn-ghost" name="status" value="declined">Decline</button>
+    </form>
+    {% endif %}
+    {% if project.published %}
+    <p><a href="{{ url_for('workspace.project_showcase_detail', slug=project.slug) }}">View the public showcase</a></p>
+    {% endif %}
+    <p><a href="{{ url_for('workspace.projects') }}">Back to projects</a></p>
+  </article>
+</section>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Showcase · UnityWorks{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="section">
+  <header class="section-head">
+    <p class="eyebrow">Portfolio</p>
+    <h2>Finished student work.</h2>
+    <p class="lede">A project lands here when the team marks it complete and publishes it.</p>
+  </header>
+  <div class="card-grid">
+    {% for project in projects %}
+    <a class="glass community-card" href="{{ url_for('workspace.project_showcase_detail', slug=project.slug) }}">
+      <span class="badge ok">Published</span>
+      <h2>{{ project.name }}</h2>
+      <p>{{ project.description or 'Completed project.' }}</p>
+      <footer>{{ project.category }} · {{ project.status }}{% if project.tech_list %} · {{ project.tech_list|join(', ') }}{% endif %}</footer>
+    </a>
+    {% else %}
+    <article class="glass community-card"><h2>Nothing published yet.</h2><p>Completed projects appear here when a team chooses to share them.</p></article>
+    {% endfor %}
+  </div>
+</main>
+{% endblock %}

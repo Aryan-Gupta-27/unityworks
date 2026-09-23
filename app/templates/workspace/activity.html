@@ -1,22 +1,30 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import pager %}
+{% from "components/macros.html" import pager, empty %}
 {% block title %}Activity · UnityWorks{% endblock %}
 {% block content %}
 <section class="page narrow">
   <header class="page-head"><div><p class="eyebrow">Activity</p><h1>What you've been doing.</h1></div></header>
+  <div class="tabs">
+    <a class="{% if not area %}active{% endif %}" href="{{ url_for('workspace.activity') }}">All</a>
+    {% for item in areas %}
+    <a class="{% if area == item %}active{% endif %}" href="{{ url_for('workspace.activity', area=item) }}">{{ item }}</a>
+    {% endfor %}
+  </div>
+  {% if pagination.items %}
   <ul class="glass activity-feed">
     {% for item in pagination.items %}
     <li>
       <i></i>
       <div>
         {% if item.link %}<a href="{{ item.link }}">{{ item.summary }}</a>{% else %}<span>{{ item.summary }}</span>{% endif %}
-        <time>{{ item.created_at|dt }}</time>
+        <time>{{ item.area }} · {{ item.created_at|dt }}</time>
       </div>
     </li>
-    {% else %}
-    <li>No activity yet.</li>
     {% endfor %}
   </ul>
+  {% else %}
+  {{ empty('No activity yet', 'Joins, posts, and project work will collect here.', url_for('workspace.project_new'), 'Start a project') }}
+  {% endif %}
   {{ pager(pagination) }}
 </section>
 {% endblock %}

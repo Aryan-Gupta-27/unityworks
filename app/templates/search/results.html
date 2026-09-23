@@ -9,20 +9,30 @@
       <h1>Look across the workspace.</h1>
     </div>
   </header>
-  <form class="glass filters" method="get">
-    <input type="search" name="q" value="{{ q }}" placeholder="People, communities, projects, resources, questions" autofocus>
+  <form class="glass filters wrap" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="People, projects, events, ideas" autofocus>
     <input type="hidden" name="type" value="{{ kind }}">
+    <input name="category" value="{{ filters.category }}" placeholder="Category">
+    <input name="subject" value="{{ filters.subject }}" placeholder="Subject">
+    <input name="skill" value="{{ filters.skill }}" placeholder="Skill">
+    <select name="status">
+      <option value="">Any status</option>
+      {% for item in statuses %}
+      <option value="{{ item }}" {% if filters.status == item %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+    <input type="date" name="after" value="{{ filters.after }}" aria-label="On or after">
     <button class="btn btn-primary" type="submit">Search</button>
   </form>
   <div class="tabs">
-    {% for key, label in [('all','All'), ('users','Users'), ('communities','Communities'), ('projects','Projects'), ('resources','Academic resources'), ('questions','Questions')] %}
-    <a class="{% if kind == key %}active{% endif %}" href="{{ url_for('search.index', q=q, type=key) }}">{{ label }}</a>
+    {% for key, label in [('all','All'), ('users','Users'), ('communities','Communities'), ('projects','Projects'), ('resources','Resources'), ('questions','Questions'), ('events','Events'), ('ideas','Ideas')] %}
+    <a class="{% if kind == key %}active{% endif %}" href="{{ url_for('search.index', q=q, type=key, category=filters.category, subject=filters.subject, skill=filters.skill, status=filters.status, after=filters.after) }}">{{ label }}</a>
     {% endfor %}
   </div>
-  {% if not q %}
-  <article class="glass empty"><h3>Search the workspace</h3><p>Try a skill, a college, a community name, or a question.</p></article>
+  {% if not searched %}
+  <article class="glass empty"><h3>Search the workspace</h3><p>Try a skill, a college, a community name, or a question. Filters work without a keyword.</p></article>
   {% elif total == 0 %}
-  <article class="glass empty"><h3>No matches for “{{ q }}”</h3><p>Try a shorter word, or another category.</p></article>
+  <article class="glass empty"><h3>No matches{% if q %} for “{{ q }}”{% endif %}</h3><p>Try a shorter word, or another category.</p></article>
   {% else %}
   {% if results.users %}
   <section class="stack">
@@ -47,7 +57,7 @@
   <section class="stack">
     <h2>Projects</h2>
     {% for project in results.projects %}
-    <a class="glass result" href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><span><strong>{{ project.name }}</strong><em>{{ project.status }}</em></span></a>
+    <a class="glass result" href="{{ url_for('workspace.project_showcase_detail', slug=project.slug) if project.published and project.visibility == 'private' else url_for('workspace.project_detail', slug=project.slug) }}"><span><strong>{{ project.name }}</strong><em>{{ project.status }}{% if project.published %} · Published{% endif %}</em></span></a>
     {% endfor %}
   </section>
   {% endif %}
@@ -55,7 +65,7 @@
   <section class="stack">
     <h2>Academic resources</h2>
     {% for item in results.resources %}
-    <a class="glass result" href="{{ url_for('workspace.academics') }}"><span><strong>{{ item.title }}</strong><em>{{ item.subject }}</em></span></a>
+    <a class="glass result" href="{{ url_for('workspace.academics', q=item.title, subject=item.subject) }}"><span><strong>{{ item.title }}</strong><em>{{ item.subject }}{% if item.kind %} · {{ item.kind }}{% endif %}</em></span></a>
     {% endfor %}
   </section>
   {% endif %}
@@ -63,7 +73,23 @@
   <section class="stack">
     <h2>Questions</h2>
     {% for item in results.questions %}
-    <a class="glass result" href="{{ url_for('workspace.question_detail', question_id=item.id) }}"><span><strong>{{ item.title }}</strong><em>{{ item.tags }}</em></span></a>
+    <a class="glass result" href="{{ url_for('workspace.question_detail', question_id=item.id) }}"><span><strong>{{ item.title }}</strong><em>{{ item.subject }} · {{ item.tags }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.events %}
+  <section class="stack">
+    <h2>Events</h2>
+    {% for item in results.events %}
+    <a class="glass result" href="{{ url_for('workspace.events', category=item.category) }}"><span><strong>{{ item.title }}</strong><em>{{ item.category }} · {{ item.starts_at|dt }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.ideas %}
+  <section class="stack">
+    <h2>Ideas</h2>
+    {% for item in results.ideas %}
+    <a class="glass result" href="{{ url_for('workspace.ideas') }}"><span><strong>{{ item.title }}</strong><em>{{ item.skills_needed or 'Open skills' }}</em></span></a>
     {% endfor %}
   </section>
   {% endif %}

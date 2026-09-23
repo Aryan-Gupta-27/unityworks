@@ -1,38 +1,54 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import csrf %}
+{% from "components/macros.html" import csrf, pager, empty %}
 {% block title %}Events · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
-  <header class="page-head"><div><p class="eyebrow">Events</p><h1>What's on.</h1></div></header>
+  <header class="page-head"><div><p class="eyebrow">Opportunities</p><h1>Hackathons, workshops, and the rest of the week.</h1></div></header>
+  <div class="tabs">
+    <a class="{% if not category %}active{% endif %}" href="{{ url_for('workspace.events') }}">All</a>
+    {% for item in categories %}
+    <a class="{% if category == item %}active{% endif %}" href="{{ url_for('workspace.events', category=item) }}">{{ item }}</a>
+    {% endfor %}
+  </div>
   <form class="glass form-card" method="post">
     {{ csrf() }}
     <div class="split-fields">
       <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
       <label class="field"><span>When (UTC)</span><input type="datetime-local" name="starts_at" required>{% if errors.starts_at %}<small class="field-error">{{ errors.starts_at }}</small>{% endif %}</label>
     </div>
-    <label class="field"><span>Location</span><input name="location"></label>
+    <div class="split-fields">
+      <label class="field"><span>Category</span>
+        <select name="category">{% for item in categories %}<option {% if category == item %}selected{% endif %}>{{ item }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Location</span><input name="location"></label>
+    </div>
+    <label class="field"><span>Registration link</span><input name="registration_link" placeholder="https://">{% if errors.registration_link %}<small class="field-error">{{ errors.registration_link }}</small>{% endif %}</label>
     <label class="field"><span>Description</span><textarea name="description" rows="3"></textarea></label>
     <button class="btn btn-primary" type="submit">Add event</button>
   </form>
   <div class="card-grid">
     {% for event in upcoming %}
     <article class="glass community-card">
-      <span class="badge">Upcoming</span>
+      <span class="badge">{{ event.category }}</span>
       <h2>{{ event.title }}</h2>
       <p>{{ event.starts_at|dt }}{% if event.location %} · {{ event.location }}{% endif %}</p>
       <p>{{ event.description }}</p>
-      <span class="muted">{{ event.creator.name }}</span>
+      <footer>
+        <span>Organizer {{ event.creator.name }}</span>
+        {% if event.registration_link %}<a href="{{ event.registration_link }}" target="_blank" rel="noopener noreferrer">Register</a>{% endif %}
+      </footer>
     </article>
     {% else %}
-    <article class="glass community-card"><h2>No upcoming events.</h2></article>
+    {{ empty('No upcoming events', 'Add one when the date and place are real.') }}
     {% endfor %}
     {% for event in past %}
     <article class="glass community-card dim">
-      <span class="badge">Past</span>
+      <span class="badge">Past · {{ event.category }}</span>
       <h2>{{ event.title }}</h2>
       <p>{{ event.starts_at|dt }}</p>
     </article>
     {% endfor %}
   </div>
+  {{ pager(pagination) }}
 </section>
 {% endblock %}

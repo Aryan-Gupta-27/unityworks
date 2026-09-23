@@ -41,6 +41,15 @@ def clean_name(value):
     return name, None
 
 
+def clean_http_url(value, label="Link", required=False):
+    text, error = clip(value, 300, required=required, label=label)
+    if error or not text:
+        return text or "", error
+    if not text.startswith(("http://", "https://")):
+        return None, f"{label} must start with http:// or https://."
+    return text, None
+
+
 def clip(value, limit, required=False, label="This field"):
     text = (value or "").strip()
     if required and not text:

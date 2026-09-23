@@ -24,6 +24,11 @@
       <option value="{{ level }}" {% if experience == level %}selected{% endif %}>{{ level }}</option>
       {% endfor %}
     </select>
+    <select name="mentor">
+      <option value="">Anyone</option>
+      <option value="mentor" {% if mentor == 'mentor' %}selected{% endif %}>Mentors</option>
+      <option value="mentee" {% if mentor == 'mentee' %}selected{% endif %}>Mentees</option>
+    </select>
     <button class="btn btn-primary" type="submit">Filter</button>
   </form>
   <div class="card-grid">
@@ -31,7 +36,7 @@
     <article class="glass person-card">
       <a href="{{ url_for('profile.view', username=user.username) }}">{{ avatar(user, 'lg') }}</a>
       <h2><a href="{{ url_for('profile.view', username=user.username) }}">{{ user.name }}</a></h2>
-      <p class="muted">@{{ user.username }} · {{ user.experience or 'Experience open' }}</p>
+      <p class="muted">@{{ user.username }} · {{ user.experience or 'Experience open' }}{% if user.mentor_label %} · {{ user.mentor_label }}{% endif %}</p>
       <p>{{ user.headline or user.college or 'Student on UnityWorks' }}</p>
       <div class="chips">{% for skill in user.skill_list[:3] %}<span>{{ skill }}</span>{% endfor %}</div>
       <form method="post" action="{{ url_for('messages.start') }}">

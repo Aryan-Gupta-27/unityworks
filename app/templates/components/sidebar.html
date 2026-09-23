@@ -9,8 +9,9 @@
     {% set ep = request.endpoint or '' %}
     {% set nav_kind = community.kind if community is defined and community else (kind if kind is defined else '') %}
     <a class="nav-item {% if ep == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">{{ icon('grid') }} Dashboard</a>
-    <a class="nav-item {% if (ep.startswith('communities.') or ep == 'communities.index') and nav_kind != 'group' and ep != 'communities.groups' %}active{% endif %}" href="{{ url_for('communities.index') }}">{{ icon('users') }} Communities</a>
+    <a class="nav-item {% if ep.startswith('communities.') and nav_kind != 'group' and nav_kind != 'club' and ep not in ['communities.groups', 'communities.clubs'] %}active{% endif %}" href="{{ url_for('communities.index') }}">{{ icon('users') }} Communities</a>
     <a class="nav-item {% if ep == 'communities.groups' or nav_kind == 'group' %}active{% endif %}" href="{{ url_for('communities.groups') }}">{{ icon('group') }} Groups</a>
+    <a class="nav-item {% if ep == 'communities.clubs' or nav_kind == 'club' %}active{% endif %}" href="{{ url_for('communities.clubs') }}">{{ icon('users') }} Clubs</a>
     <a class="nav-item {% if ep.startswith('messages.') %}active{% endif %}" href="{{ url_for('messages.inbox') }}">
       {{ icon('chat') }} Messages
       {% if nav_counts.messages %}<em class="count">{{ nav_counts.messages }}</em>{% endif %}

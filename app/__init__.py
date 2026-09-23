@@ -1,5 +1,7 @@
+import logging
 import os
 from datetime import datetime
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_login import current_user, logout_user
@@ -24,8 +26,18 @@ def create_app(config_name=None):
     config_name = config_name or os.environ.get("UNITYWORKS_CONFIG", "development")
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_object(CONFIGS[config_name])
+    if config_name == "production":
+        secret = app.config.get("SECRET_KEY") or ""
+        if secret in {"", "unityworks-dev-key-change-in-production"}:
+            raise RuntimeError("Set SECRET_KEY before running UnityWorks in production.")
 
     os.makedirs(app.instance_path, exist_ok=True)
+    if config_name == "production":
+        _configure_logging(app)
+        if os.environ.get("BEHIND_PROXY") == "1":
+            from werkzeug.middleware.proxy_fix import ProxyFix
+
+            app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
     if config_name != "testing" and not os.environ.get("DATABASE_URL"):
         db_path = os.path.join(app.instance_path, "unityworks.db")
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + db_path
@@ -55,12 +67,28 @@ def create_app(config_name=None):
 
     with app.app_context():
         db.create_all()
-        if not app.config.get("TESTING"):
-            from app.seed import seed_if_empty
+        from app.schema import upgrade_schema
+
+        upgrade_schema()
+        if not app.config.get("TESTING") and os.environ.get("UNITYWORKS_SEED", "1") != "0":
+            from app.seed import enrich_ecosystem, enrich_workspace, seed_if_empty
 
             seed_if_empty()
+            enrich_workspace()
+            enrich_ecosystem()
 
     return app
+
+
+def _configure_logging(app):
+    log_dir = os.path.join(app.instance_path, "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    path = os.path.join(log_dir, "unityworks.log")
+    handler = RotatingFileHandler(path, maxBytes=1_000_000, backupCount=3)
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    handler.setLevel(logging.INFO)
+    app.logger.setLevel(logging.INFO)
+    app.logger.addHandler(handler)
 
 
 def _register_handlers(app):

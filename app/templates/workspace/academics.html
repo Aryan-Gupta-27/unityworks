@@ -1,37 +1,100 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import csrf %}
+{% from "components/macros.html" import csrf, pager %}
 {% block title %}Academics · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
   <header class="page-head">
     <div>
-      <p class="eyebrow">Academics</p>
-      <h1>Resources and the record.</h1>
-      <p class="lede">{{ current_user.education or 'Add your education on your profile so this page knows your program.' }}</p>
+      <p class="eyebrow">Academic workspace</p>
+      <h1>Subjects, resources, questions.</h1>
+      <p class="lede">Share a note, a PDF, or a link. Ask in the same subject. Discussions stay in academic communities.</p>
     </div>
-    <a class="btn btn-ghost" href="{{ url_for('profile.edit') }}">Edit education</a>
+    <a class="btn btn-ghost" href="{{ url_for('workspace.questions') }}">Questions</a>
   </header>
-  <form class="glass form-card" method="post">
+  <div class="tabs">
+    <a class="{% if not subject %}active{% endif %}" href="{{ url_for('workspace.academics', q=q) }}">All subjects</a>
+    {% for item in subjects %}
+    <a class="{% if subject == item %}active{% endif %}" href="{{ url_for('workspace.academics', subject=item, q=q) }}">{{ item }}</a>
+    {% endfor %}
+  </div>
+  <form class="glass form-card" method="post" enctype="multipart/form-data">
     {{ csrf() }}
     <div class="split-fields">
       <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
-      <label class="field"><span>Subject</span><input name="subject" required>{% if errors.subject %}<small class="field-error">{{ errors.subject }}</small>{% endif %}</label>
+      <label class="field"><span>Subject</span>
+        <select name="subject">
+          {% for item in subjects %}<option {% if subject == item %}selected{% endif %}>{{ item }}</option>{% endfor %}
+        </select>
+        {% if errors.subject %}<small class="field-error">{{ errors.subject }}</small>{% endif %}
+      </label>
+    </div>
+    <div class="split-fields">
+      <label class="field"><span>Type</span>
+        <select name="kind">{% for item in kinds %}<option>{{ item }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Tags</span><input name="tags" placeholder="notes, week 3"></label>
     </div>
     <label class="field"><span>Description</span><textarea name="description" rows="3"></textarea></label>
-    <label class="field"><span>Link</span><input name="link" placeholder="https://">{% if errors.link %}<small class="field-error">{{ errors.link }}</small>{% endif %}</label>
+    <div class="split-fields">
+      <label class="field"><span>File</span><input type="file" name="file">{% if errors.file %}<small class="field-error">{{ errors.file }}</small>{% endif %}</label>
+      <label class="field"><span>Link</span><input name="link" placeholder="https://">{% if errors.link %}<small class="field-error">{{ errors.link }}</small>{% endif %}</label>
+    </div>
     <button class="btn btn-primary" type="submit">Share resource</button>
+  </form>
+  <form class="glass filters" method="get">
+    {% if subject %}<input type="hidden" name="subject" value="{{ subject }}">{% endif %}
+    <input type="search" name="q" value="{{ q }}" placeholder="Search resources">
+    <button class="btn btn-primary" type="submit">Search</button>
   </form>
   <div class="card-grid">
     {% for item in resources %}
     <article class="glass community-card">
-      <span class="badge">{{ item.subject }}</span>
-      <h2>{% if item.link %}<a href="{{ item.link }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</h2>
+      <div class="card-top"><span class="badge">{{ item.subject }}</span><span class="badge">{{ item.kind }}</span></div>
+      <h2>{{ item.title }}</h2>
       <p>{{ item.description }}</p>
-      <span class="muted">{{ item.author.name }}</span>
+      <div class="chips">{% for tag in item.tag_list %}<span>{{ tag }}</span>{% endfor %}</div>
+      <footer>
+        <span><a href="{{ url_for('profile.view', username=item.author.username) }}">{{ item.author.name }}</a> · {{ item.created_at|dt }}</span>
+        <span class="row-actions">
+          {% if item.stored_name %}<a href="{{ url_for('workspace.academic_file', resource_id=item.id) }}">{{ item.original_name }}</a>{% endif %}
+          {% if item.link %}<a href="{{ item.link }}" target="_blank" rel="noopener noreferrer">Open link</a>{% endif %}
+          {% if item.author_id == current_user.id %}
+          <form method="post" action="{{ url_for('workspace.academic_delete', resource_id=item.id) }}">{{ csrf() }}<button class="text-btn" type="submit">Delete</button></form>
+          {% endif %}
+        </span>
+      </footer>
     </article>
     {% else %}
-    <article class="glass community-card"><h2>No resources yet.</h2></article>
+    <article class="glass community-card"><h2>No resources in this subject yet.</h2><p>Share the sheet you wish you had last week.</p></article>
     {% endfor %}
+  </div>
+  {{ pager(pagination) }}
+
+  <div class="dash-quad">
+    <section class="glass panel">
+      <header class="panel-head"><h2>Questions</h2><a href="{{ url_for('workspace.questions', subject=subject) }}">All</a></header>
+      <ul class="mini-list plain">
+        {% for question in questions %}
+        <li><a href="{{ url_for('workspace.question_detail', question_id=question.id) }}"><strong>{{ question.title }}</strong><em>{{ question.subject or 'General' }} · {{ question.answers|length }} answers</em></a></li>
+        {% else %}<li class="muted">No questions yet.</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Your notes</h2><a href="{{ url_for('workspace.notes') }}">Open</a></header>
+      <ul class="mini-list plain">
+        {% for note in notes %}
+        <li><a href="{{ url_for('workspace.note_edit', note_id=note.id) }}"><strong>{{ note.title }}</strong><em>{{ note.updated_at|ago }}</em></a></li>
+        {% else %}<li class="muted">Personal notes stay in Notes.</li>{% endfor %}
+      </ul>
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Discussions</h2><a href="{{ url_for('communities.index', category='Academics') }}">Academic communities</a></header>
+      <ul class="mini-list plain">
+        {% for post in discussions %}
+        <li><a href="{{ url_for('communities.post_detail', slug=post.community.slug, post_id=post.id) }}"><strong>{{ post.title }}</strong><em>{{ post.community.name }}</em></a></li>
+        {% else %}<li class="muted">No public academic discussions yet.</li>{% endfor %}
+      </ul>
+    </section>
   </div>
 </section>
 {% endblock %}

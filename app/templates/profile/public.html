@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import avatar %}
+{% block title %}{{ user.name }} · UnityWorks{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="section">
+  <article class="glass profile-hero">
+    {{ avatar(user, 'xl') }}
+    <div>
+      <p class="eyebrow">Public profile</p>
+      <h1>{{ user.name }}</h1>
+      <p class="handle">@{{ user.username }}{% if user.profile_public and user.shares('about') and user.headline %} · {{ user.headline }}{% endif %}</p>
+      {% if user.profile_public and user.shares('about') %}
+      <p class="lede">{{ user.bio or 'No bio shared.' }}</p>
+      {% else %}
+      <p class="lede">This student keeps the rest of their profile inside UnityWorks.</p>
+      {% endif %}
+      {% if user.profile_public and user.mentor_label %}<span class="badge">{{ user.mentor_label }}</span>{% endif %}
+    </div>
+  </article>
+  {% if user.profile_public %}
+  <div class="profile-grid">
+    <section class="glass panel">
+      {% if user.shares('skills') %}
+      <h2>Skills</h2>
+      <div class="chips">{% for skill in user.skill_list %}<span>{{ skill }}</span>{% else %}<p class="muted">No skills shared.</p>{% endfor %}</div>
+      {% endif %}
+      {% if user.shares('education') %}
+      <h2>Education</h2>
+      <p>{{ user.education or 'Not shared.' }}</p>
+      {% if user.college %}<p class="muted">{{ user.college }}{% if user.program %} · {{ user.program }}{% endif %}{% if user.academic_year %} · {{ user.academic_year }}{% endif %}</p>{% endif %}
+      {% endif %}
+      {% if user.shares('experience') %}
+      <h2>Experience</h2>
+      <p>{{ user.experience or 'Level not shared.' }}</p>
+      <p>{{ user.experience_note }}</p>
+      {% endif %}
+      {% if user.shares('certifications') %}
+      <h2>Certifications</h2>
+      <p>{{ user.certifications or 'None shared.' }}</p>
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      {% if user.shares('achievements') %}
+      <h2>Achievements</h2>
+      {% if user.honors %}<p>{{ user.honors }}</p>{% endif %}
+      <div class="badge-row">
+        {% for badge in badges %}
+        <article class="badge-card"><strong>{{ badge.label }}</strong><p>{{ badge.blurb }}</p></article>
+        {% else %}<p class="muted">No badges yet.</p>{% endfor %}
+      </div>
+      {% endif %}
+      {% if user.shares('projects') %}
+      <h2>Projects</h2>
+      <ul class="mini-list plain">
+        {% for project in projects %}
+        <li>{% if project.published %}<a href="{{ url_for('workspace.project_showcase_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }} · Published</em></a>{% else %}<span><strong>{{ project.name }}</strong><em>{{ project.status }}</em></span>{% endif %}</li>
+        {% else %}<li class="muted">No public projects.</li>{% endfor %}
+      </ul>
+      {% endif %}
+      {% if user.shares('communities') %}
+      <h2>Communities</h2>
+      <ul class="mini-list plain">
+        {% for community in communities %}
+        <li><span><strong>{{ community.name }}</strong><em>{{ community.kind_label }}</em></span></li>
+        {% else %}<li class="muted">No public communities.</li>{% endfor %}
+      </ul>
+      {% endif %}
+    </section>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

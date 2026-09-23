@@ -1,0 +1,24 @@
+{% extends "app_base.html" %}
+{% block title %}Activity · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <section class="glass panel">
+    {% if rows %}
+    <ul class="activity-feed">
+      {% for item in rows %}
+      <li>
+        <i></i>
+        <div>
+          <span>{{ item.summary }}</span>
+          <time>{{ item.created_at|dt }}</time>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="dashed-empty"><strong>Nothing on the project feed yet</strong><p>Task creates, joins, uploads, and completed work show up here.</p></div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

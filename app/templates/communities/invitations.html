@@ -44,7 +44,7 @@
     <h2>Project invitations</h2>
     {% for invite in project_invites %}
     <div class="invite-row">
-      <div><strong>{{ invite.project.name }}</strong><p>from {{ invite.inviter.name }}</p></div>
+      <div><strong>{{ invite.project.name }}</strong><p>from {{ invite.inviter.name }} · {{ invite.role|capitalize }}</p></div>
       <form method="post" action="{{ url_for('workspace.project_respond', invite_id=invite.id) }}">
         {{ csrf() }}
         <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>

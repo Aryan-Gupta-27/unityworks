@@ -14,15 +14,36 @@
     </form>
   </header>
   <div class="tabs">
-    <a class="{% if filt == 'all' %}active{% endif %}" href="{{ url_for('notifications.index', filter='all') }}">All <em>{{ counts.all }}</em></a>
-    <a class="{% if filt == 'unread' %}active{% endif %}" href="{{ url_for('notifications.index', filter='unread') }}">Unread <em>{{ counts.unread }}</em></a>
-    <a class="{% if filt == 'read' %}active{% endif %}" href="{{ url_for('notifications.index', filter='read') }}">Read <em>{{ counts.read }}</em></a>
+    <a class="{% if filt == 'all' %}active{% endif %}" href="{{ url_for('notifications.index', filter='all', category=category) }}">All <em>{{ counts.all }}</em></a>
+    <a class="{% if filt == 'unread' %}active{% endif %}" href="{{ url_for('notifications.index', filter='unread', category=category) }}">Unread <em>{{ counts.unread }}</em></a>
+    <a class="{% if filt == 'read' %}active{% endif %}" href="{{ url_for('notifications.index', filter='read', category=category) }}">Read <em>{{ counts.read }}</em></a>
   </div>
+  <form class="glass filters wrap" method="get">
+    <input type="hidden" name="filter" value="{{ filt }}">
+    <select name="category" aria-label="Category">
+      <option value="">All categories</option>
+      {% for item in categories %}
+      <option value="{{ item }}" {% if category == item %}selected{% endif %}>{{ item }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-soft" type="submit">Filter</button>
+  </form>
+  <form class="glass form-card" method="post" action="{{ url_for('notifications.preferences') }}">
+    {{ csrf() }}
+    <h2>Mute categories</h2>
+    <p class="muted">Muted categories stay quiet. Deadline and event reminders use the same switches.</p>
+    <div class="check-grid">
+      {% for item in categories %}
+      <label class="check"><input type="checkbox" name="mute" value="{{ item }}" {% if item in muted %}checked{% endif %}> {{ item }}</label>
+      {% endfor %}
+    </div>
+    <button class="btn btn-soft" type="submit">Save preferences</button>
+  </form>
   <div class="stack">
     {% for note in pagination.items %}
     <article class="glass note-card {% if not note.is_read %}unread{% endif %}">
       <div>
-        <span class="badge">{{ note.kind|replace('_', ' ') }}</span>
+        <span class="badge">{{ note.category }}</span>
         <h2><a href="{{ url_for('notifications.open_notification', nid=note.id) }}">{{ note.title }}</a></h2>
         {% if note.body %}<p>{{ note.body }}</p>{% endif %}
         <time>{{ note.created_at|dt }}</time>

@@ -41,9 +41,13 @@
     <a class="btn btn-soft" href="{{ url_for('communities.create', kind='community') }}">Create community +</a>
     <a class="btn btn-soft" href="{{ url_for('communities.create', kind='group') }}">Create group +</a>
     <a class="btn btn-soft" href="{{ url_for('messages.inbox') }}">New conversation +</a>
+    <a class="btn btn-soft" href="{{ url_for('workspace.project_new') }}">New project +</a>
+    <a class="btn btn-soft" href="{{ url_for('communities.create', kind='club') }}">Create club +</a>
+    <a class="btn btn-soft" href="{{ url_for('workspace.academics') }}">Academic</a>
+    <a class="btn btn-soft" href="{{ url_for('workspace.events') }}">Events</a>
   </div>
 
-  {% if all_invites %}
+  {% if all_invites or project_invites %}
   <section class="glass invite-strip">
     <header><h2>Waiting on you</h2></header>
     {% for invite in all_invites %}
@@ -53,6 +57,19 @@
         <p>{{ invite.inviter.name }} invited you{% if invite.message %} — {{ invite.message }}{% endif %}</p>
       </div>
       <form method="post" action="{{ url_for('communities.respond_invite', invite_id=invite.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% endfor %}
+    {% for invite in project_invites %}
+    <div class="invite-row">
+      <div>
+        <strong>{{ invite.project.name }}</strong>
+        <p>{{ invite.inviter.name }} invited you to the project.</p>
+      </div>
+      <form method="post" action="{{ url_for('workspace.project_respond', invite_id=invite.id) }}">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
         <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
@@ -122,7 +139,7 @@
       {% if projects %}
       <ul class="mini-list plain">
         {% for project in projects %}
-        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }}</em></a></li>
+        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }} · {{ project.completion }}%</em></a></li>
         {% endfor %}
       </ul>
       {% else %}
@@ -170,6 +187,60 @@
         <span class="ghost">Skills not added</span>
         {% endfor %}
       </div>
+    </section>
+  </div>
+
+  <div class="dash-quad">
+    <section class="glass panel">
+      <header class="panel-head"><h2>Pending tasks</h2><a href="{{ url_for('workspace.projects') }}">Projects</a></header>
+      {% if pending_tasks %}
+      <ul class="mini-list plain">
+        {% for task in pending_tasks %}
+        <li><a href="{{ url_for('workspace.project_tasks', slug=task.project.slug) }}"><strong>{{ task.title }}</strong><em>{{ task.project.name }} · {{ task.status }}{% if task.deadline %} · {{ task.deadline|dt }}{% endif %}{% if task.is_overdue %} · overdue{% endif %}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('No pending tasks', 'Assigned work that is not done will collect here.') }}
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Upcoming events</h2><a href="{{ url_for('workspace.events') }}">Calendar</a></header>
+      {% if upcoming_events %}
+      <ul class="mini-list plain">
+        {% for event in upcoming_events %}
+        <li><a href="{{ url_for('workspace.events', category=event.category) }}"><strong>{{ event.title }}</strong><em>{{ event.starts_at|dt }} · {{ event.category }}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('Nothing scheduled', 'Add a workshop or hackathon when the date is real.', url_for('workspace.events'), 'Add an event') }}
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Academic activity</h2><a href="{{ url_for('workspace.academics') }}">Open</a></header>
+      {% if academic or questions %}
+      <ul class="mini-list plain">
+        {% for item in academic %}
+        <li><a href="{{ url_for('workspace.academics', subject=item.subject) }}"><strong>{{ item.title }}</strong><em>{{ item.subject }} · {{ item.kind }}</em></a></li>
+        {% endfor %}
+        {% for item in questions %}
+        <li><a href="{{ url_for('workspace.question_detail', question_id=item.id) }}"><strong>{{ item.title }}</strong><em>Question · {{ item.subject }}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('No academic activity yet', 'Share a resource or ask a question.', url_for('workspace.academics'), 'Open academics') }}
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Portfolio</h2><a href="{{ url_for('workspace.project_showcase') }}">Showcase</a></header>
+      {% if published %}
+      <ul class="mini-list plain">
+        {% for project in published %}
+        <li><a href="{{ url_for('workspace.project_showcase_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>Published{% if project.technologies %} · {{ project.technologies }}{% endif %}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('Nothing published', 'Complete a project, then publish it from settings.', url_for('workspace.projects'), 'Open projects') }}
+      {% endif %}
     </section>
   </div>
 </section>

@@ -41,8 +41,21 @@
       </div>
       <h2>Education</h2>
       <p>{{ user.education or 'Not added yet.' }}</p>
+      <h2>Experience</h2>
+      <p>{{ user.experience or 'Level not set.' }}</p>
+      <p>{{ user.experience_note or 'No experience note yet.' }}</p>
+      <h2>Certifications</h2>
+      <p>{{ user.certifications or 'None added yet.' }}</p>
+      {% if user.mentor_label %}<p><span class="badge">{{ user.mentor_label }}</span></p>{% endif %}
     </section>
     <section class="glass panel">
+      <h2>Achievements</h2>
+      {% if user.honors %}<p>{{ user.honors }}</p>{% endif %}
+      <div class="badge-row">
+        {% for badge in badges %}
+        <article class="badge-card"><strong>{{ badge.label }}</strong><p>{{ badge.blurb }}</p></article>
+        {% else %}<p class="muted">Badges appear when you share work, join a team, or help someone.</p>{% endfor %}
+      </div>
       <h2>Communities</h2>
       <ul class="mini-list plain">
         {% for community in communities %}
@@ -52,9 +65,11 @@
       <h2>Projects</h2>
       <ul class="mini-list plain">
         {% for project in projects %}
-        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }}</em></a></li>
+        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }}{% if project.published %} · Published{% endif %} · {{ project.completion }}%</em></a></li>
         {% else %}<li class="muted">No projects yet.</li>{% endfor %}
       </ul>
+      <p><a class="text-link" href="{{ url_for('workspace.project_showcase') }}">Public showcase</a></p>
+      <p><a class="text-link" href="{{ url_for('profile.public', username=user.username) }}">Public page /u/{{ user.username }}</a></p>
     </section>
   </div>
 </section>

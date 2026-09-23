@@ -1,0 +1,92 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Tasks · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  {% if can_contribute %}
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <h2>New task</h2>
+    <div class="split-fields">
+      <label class="field"><span>Title</span><input name="title" required maxlength="140"></label>
+      <label class="field"><span>Priority</span>
+        <select name="priority">{% for priority in priorities %}<option {% if priority == 'Medium' %}selected{% endif %}>{{ priority }}</option>{% endfor %}</select>
+      </label>
+    </div>
+    <label class="field"><span>Description</span><textarea name="description" rows="3"></textarea></label>
+    <div class="split-fields">
+      <label class="field"><span>Assignee</span>
+        <select name="assignee_id">
+          <option value="">Unassigned</option>
+          {% for row in workers %}<option value="{{ row.user_id }}">{{ row.user.name }}</option>{% endfor %}
+        </select>
+      </label>
+      <label class="field"><span>Deadline</span><input type="date" name="deadline"></label>
+    </div>
+    <label class="field"><span>Status</span>
+      <select name="status">{% for status in statuses %}<option>{{ status }}</option>{% endfor %}</select>
+    </label>
+    <button class="btn btn-primary" type="submit">Add task</button>
+  </form>
+  {% endif %}
+  <div class="stack">
+    {% for task in tasks %}
+    <article class="glass panel task-card {% if task.is_overdue %}overdue{% endif %}" id="task-{{ task.id }}">
+      <header class="panel-head">
+        <div>
+          <h2>{{ task.title }}</h2>
+          <p class="muted">{{ task.status }} · {{ task.priority }}{% if task.assignee %} · {{ task.assignee.name }}{% else %} · Unassigned{% endif %}{% if task.deadline %} · Due {{ task.deadline.strftime('%d %b %Y') }}{% endif %}{% if task.is_overdue %} · Overdue{% endif %}</p>
+        </div>
+        {% if task.id in movable|default([]) or can_manage %}
+        <form method="post" action="{{ url_for('workspace.task_status', slug=project.slug, task_id=task.id) }}">
+          {{ csrf() }}
+          <select name="status" onchange="this.form.submit()">
+            {% for status in statuses %}<option {% if task.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}
+          </select>
+        </form>
+        {% endif %}
+      </header>
+      {% if task.description %}<div class="rich">{{ task.description|rich }}</div>{% endif %}
+      <p class="muted">Created by {{ task.author.name if task.author else 'a teammate' }} · {{ task.created_at|dt }}</p>
+      {% if can_contribute and (can_manage or task.created_by == current_user.id or task.assignee_id == current_user.id) %}
+      <details class="details">
+        <summary>Edit task</summary>
+        <form method="post" action="{{ url_for('workspace.task_update', slug=project.slug, task_id=task.id) }}">
+          {{ csrf() }}
+          <label class="field"><span>Title</span><input name="title" required maxlength="140" value="{{ task.title }}"></label>
+          <label class="field"><span>Description</span><textarea name="description" rows="3">{{ task.description }}</textarea></label>
+          <div class="split-fields">
+            <label class="field"><span>Assignee</span>
+              <select name="assignee_id">
+                <option value="">Unassigned</option>
+                {% for row in workers %}<option value="{{ row.user_id }}" {% if task.assignee_id == row.user_id %}selected{% endif %}>{{ row.user.name }}</option>{% endfor %}
+              </select>
+            </label>
+            <label class="field"><span>Priority</span>
+              <select name="priority">{% for priority in priorities %}<option {% if task.priority == priority %}selected{% endif %}>{{ priority }}</option>{% endfor %}</select>
+            </label>
+          </div>
+          <div class="split-fields">
+            <label class="field"><span>Deadline</span><input type="date" name="deadline" value="{% if task.deadline %}{{ task.deadline.strftime('%Y-%m-%d') }}{% endif %}"></label>
+            <label class="field"><span>Status</span>
+              <select name="status">{% for status in statuses %}<option {% if task.status == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>
+            </label>
+          </div>
+          <button class="btn btn-primary btn-sm" type="submit">Save task</button>
+        </form>
+        {% if can_manage or task.created_by == current_user.id %}
+        <form method="post" action="{{ url_for('workspace.task_delete', slug=project.slug, task_id=task.id) }}">
+          {{ csrf() }}
+          <button class="text-btn" type="submit">Delete task</button>
+        </form>
+        {% endif %}
+      </details>
+      {% endif %}
+    </article>
+    {% else %}
+    <article class="glass empty"><h3>No tasks yet</h3><p>Add the first piece of work. The board will pick it up.</p></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -5,6 +5,7 @@ __pycache__/
 venv/
 .env
 instance/*.db
+instance/logs/
 instance/uploads/avatars/*
 instance/uploads/files/*
 !instance/uploads/avatars/.gitkeep

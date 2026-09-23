@@ -2,12 +2,12 @@
 <section class="page">
   <header class="page-head">
     <div>
-      <p class="eyebrow">{{ 'Study groups' if kind == 'group' else 'Communities' }}</p>
-      <h1>{{ 'Smaller rooms. Clearer work.' if kind == 'group' else 'Find your people.' }}</h1>
-      <p class="lede">{{ 'Private or public groups for a project, a course, or a Thursday night problem set.' if kind == 'group' else 'Join a community around a subject, a club, or a kind of making.' }}</p>
+      <p class="eyebrow">{{ 'Study groups' if kind == 'group' else ('Student clubs' if kind == 'club' else 'Communities') }}</p>
+      <h1>{{ 'Smaller rooms. Clearer work.' if kind == 'group' else ('Rooms with a name on the door.' if kind == 'club' else 'Find your people.') }}</h1>
+      <p class="lede">{{ 'Private or public groups for a project, a course, or a Thursday night problem set.' if kind == 'group' else ('Coding, photography, robotics, and the other clubs that outlast a semester.' if kind == 'club' else 'Join a community around a subject, a club, or a kind of making.') }}</p>
     </div>
     {% if current_user.is_authenticated %}
-    <a class="btn btn-primary" href="{{ url_for('communities.create', kind=kind) }}">Create {{ 'group' if kind == 'group' else 'community' }} +</a>
+    <a class="btn btn-primary" href="{{ url_for('communities.create', kind=kind) }}">Create {{ kind if kind != 'community' else 'community' }} +</a>
     {% else %}
     <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Join to participate</a>
     {% endif %}

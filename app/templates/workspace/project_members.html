@@ -1,0 +1,85 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, avatar %}
+{% block title %}Members · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <div class="community-layout">
+    <section class="glass panel">
+      <h2>Team</h2>
+      {% for row in project.memberships %}
+      <div class="invite-row">
+        <a href="{{ url_for('profile.view', username=row.user.username) }}">{{ avatar(row.user, 'sm') }} <strong>{{ row.user.name }}</strong></a>
+        <div class="row-actions">
+          <em>{{ row.role_label }}</em>
+          {% if can_own and row.user_id != current_user.id %}
+          <form method="post" action="{{ url_for('workspace.project_member_role', slug=project.slug, user_id=row.user_id) }}">
+            {{ csrf() }}
+            <select name="role">
+              <option value="manager" {% if row.role == 'manager' %}selected{% endif %}>Manager</option>
+              <option value="contributor" {% if row.role == 'contributor' %}selected{% endif %}>Contributor</option>
+              <option value="viewer" {% if row.role == 'viewer' %}selected{% endif %}>Viewer</option>
+              <option value="owner">Transfer ownership</option>
+            </select>
+            <button class="btn btn-soft btn-sm" type="submit">Update</button>
+          </form>
+          {% elif can_manage and row.role in ['contributor', 'viewer'] and row.user_id != current_user.id %}
+          <form method="post" action="{{ url_for('workspace.project_member_role', slug=project.slug, user_id=row.user_id) }}">
+            {{ csrf() }}
+            <select name="role">
+              <option value="contributor" {% if row.role == 'contributor' %}selected{% endif %}>Contributor</option>
+              <option value="viewer" {% if row.role == 'viewer' %}selected{% endif %}>Viewer</option>
+            </select>
+            <button class="btn btn-soft btn-sm" type="submit">Update</button>
+          </form>
+          {% endif %}
+          {% if can_manage and row.user_id != current_user.id and (can_own or row.role in ['contributor', 'viewer']) and row.role != 'owner' %}
+          <form method="post" action="{{ url_for('workspace.project_member_remove', slug=project.slug, user_id=row.user_id) }}">
+            {{ csrf() }}
+            <button class="text-btn" type="submit">Remove</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+      {% if member %}
+      <form method="post" action="{{ url_for('workspace.project_leave', slug=project.slug) }}">
+        {{ csrf() }}
+        <button class="btn btn-ghost btn-sm" type="submit">Leave project</button>
+      </form>
+      {% endif %}
+    </section>
+    <aside class="stack">
+      {% if can_manage %}
+      <form class="glass form-card" method="post" action="{{ url_for('workspace.project_invite', slug=project.slug) }}">
+        {{ csrf() }}
+        <h2>Invite</h2>
+        <label class="field"><span>Username</span><input name="username" required placeholder="mira"></label>
+        <label class="field"><span>Role</span>
+          <select name="role">
+            {% for role in invite_roles %}<option value="{{ role }}">{{ role|capitalize }}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="btn btn-primary" type="submit">Send invite</button>
+      </form>
+      <section class="glass panel">
+        <h2>Pending invites</h2>
+        {% for invite in pending_invites %}
+        <div class="invite-row">
+          <div><strong>@{{ invite.invitee.username }}</strong><p>{{ invite.role|capitalize }}</p></div>
+          <form method="post" action="{{ url_for('workspace.project_invite_cancel', slug=project.slug, invite_id=invite.id) }}">
+            {{ csrf() }}
+            <button class="text-btn" type="submit">Cancel</button>
+          </form>
+        </div>
+        {% else %}
+        <p class="muted">No invites waiting.</p>
+        {% endfor %}
+      </section>
+      {% else %}
+      <section class="glass panel"><h2>Invites</h2><p class="muted">Owners and managers send invites. Viewers can read the workspace.</p></section>
+      {% endif %}
+    </aside>
+  </div>
+</section>
+{% endblock %}

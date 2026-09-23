@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} · Showcase{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="section">
+  <article class="glass prose">
+    <div>
+      <p class="eyebrow">{{ project.category }} · Published</p>
+      <h1>{{ project.name }}</h1>
+      <p>{{ project.description or 'A completed student project.' }}</p>
+      <p class="muted">{{ project.status }} · {{ stats.completion }}% complete · {{ stats.members }} members · {{ stats.tasks }} tasks · {{ stats.files }} files · {{ stats.notes }} notes</p>
+      {% if project.tech_list %}<div class="chips">{% for item in project.tech_list %}<span>{{ item }}</span>{% endfor %}</div>{% endif %}
+      <p>
+        {% if project.repo_url %}<a href="{{ project.repo_url }}" target="_blank" rel="noopener noreferrer">Repository</a>{% endif %}
+        {% if project.demo_url %} · <a href="{{ project.demo_url }}" target="_blank" rel="noopener noreferrer">Demo</a>{% endif %}
+      </p>
+      <div class="progress-bar" aria-hidden="true"><span style="width: {{ stats.completion }}%"></span></div>
+      {% if current_user.is_authenticated %}
+      <p><a class="btn btn-primary" href="{{ url_for('workspace.project_detail', slug=project.slug) }}">Open workspace</a></p>
+      {% endif %}
+      <p><a href="{{ url_for('workspace.project_showcase') }}">All published work</a></p>
+    </div>
+    <div>
+      <h2>Team</h2>
+      <ul class="plain">
+        {% for row in project.memberships %}
+        <li>{{ row.user.name }} · {{ row.role_label }}</li>
+        {% endfor %}
+      </ul>
+      {% if files %}
+      <h2>Files</h2>
+      <ul class="plain">
+        {% for item in files %}
+        <li><a href="{{ url_for('workspace.project_showcase_file', slug=project.slug, file_id=item.id) }}">{{ item.original_name }}</a> · v{{ item.version }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </article>
+</main>
+{% endblock %}

@@ -212,7 +212,7 @@ def updates(conversation_id):
 @login_required
 def edit_message(conversation_id, message_id):
     msg = Message.query.filter_by(id=message_id, conversation_id=conversation_id).first_or_404()
-    if msg.sender_id != current_user.id or msg.is_deleted:
+    if msg.sender_id != current_user.id or msg.is_deleted or not participant_of(current_user, msg.conversation):
         abort(403)
     body, body_error = clip(request.form.get("body"), 2000, required=True, label="Message")
     if body_error:
@@ -229,7 +229,7 @@ def edit_message(conversation_id, message_id):
 @login_required
 def delete_message(conversation_id, message_id):
     msg = Message.query.filter_by(id=message_id, conversation_id=conversation_id).first_or_404()
-    if msg.sender_id != current_user.id:
+    if msg.sender_id != current_user.id or not participant_of(current_user, msg.conversation):
         abort(403)
     msg.is_deleted = True
     msg.body = ""

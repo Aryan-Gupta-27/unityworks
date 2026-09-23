@@ -1,6 +1,10 @@
 """Demo workspace used the first time the database is created."""
 
+import os
+import uuid
 from datetime import timedelta
+
+from flask import current_app
 
 from app.extensions import db
 from app.models import (
@@ -16,11 +20,13 @@ from app.models import (
     Event,
     FileItem,
     Idea,
+    IdeaInterest,
     Message,
     Note,
     Notification,
     Post,
     Project,
+    ProjectDiscussion,
     ProjectMember,
     Question,
     Reaction,
@@ -327,7 +333,9 @@ def seed_if_empty():
         name="Campus Navigator",
         slug=unique_slug(Project, "Campus Navigator"),
         description="A small map of Sangam that knows which labs are actually open after 7.",
+        category="Web Development",
         status="Active",
+        visibility="public",
         creator_id=aarav.id,
         created_at=now - timedelta(days=15),
     )
@@ -335,18 +343,20 @@ def seed_if_empty():
         name="StudyBuddy Notes",
         slug=unique_slug(Project, "StudyBuddy Notes"),
         description="Shared revision sheets with owners, not a graveyard of Google Docs.",
+        category="Academics",
         status="Planning",
+        visibility="public",
         creator_id=mira.id,
         created_at=now - timedelta(days=8),
     )
     db.session.add_all([nav, notes_project])
     db.session.flush()
     db.session.add(ProjectMember(project_id=nav.id, user_id=aarav.id, role="owner"))
-    db.session.add(ProjectMember(project_id=nav.id, user_id=kabir.id, role="member"))
+    db.session.add(ProjectMember(project_id=nav.id, user_id=kabir.id, role="contributor"))
     db.session.add(ProjectMember(project_id=notes_project.id, user_id=mira.id, role="owner"))
-    db.session.add(ProjectMember(project_id=notes_project.id, user_id=aarav.id, role="member"))
-    db.session.add(Task(project_id=nav.id, title="Sketch the lab hours table", assignee_id=kabir.id, created_by=aarav.id, status="In progress"))
-    db.session.add(Task(project_id=notes_project.id, title="Decide how shared notes are owned", assignee_id=aarav.id, created_by=mira.id, status="To do"))
+    db.session.add(ProjectMember(project_id=notes_project.id, user_id=aarav.id, role="contributor"))
+    db.session.add(Task(project_id=nav.id, title="Sketch the lab hours table", assignee_id=kabir.id, created_by=aarav.id, status="IN PROGRESS", priority="High"))
+    db.session.add(Task(project_id=notes_project.id, title="Decide how shared notes are owned", assignee_id=aarav.id, created_by=mira.id, status="TODO", priority="Medium"))
 
     db.session.add(Note(user_id=aarav.id, title="Transformer diagram notes", body="Query, key, value. Draw the residual path before memorizing the formula.\n\n`softmax(QK^T / sqrt(d)) V`", created_at=now - timedelta(days=2)))
     db.session.add(Note(user_id=aarav.id, title="Lab booking", body="Small lab, Friday 6pm. Bring markers.", created_at=now - timedelta(days=1)))
@@ -485,15 +495,283 @@ def seed_if_empty():
             original_name="revision-outline.txt",
             size=120,
             mime="text/plain",
+            folder="Documents",
+            group_key="revision-outline",
+            version=1,
             created_at=now - timedelta(hours=30),
         )
     )
     db.session.commit()
 
-    import os
-    from flask import current_app
-
     path = os.path.join(current_app.config["FILE_FOLDER"], folder_note)
     if not os.path.exists(path):
         with open(path, "w", encoding="utf-8") as handle:
-            handle.write("Attention paper — sections 3 and 4.\nOne question for Friday.\n")
+            handle.write("Attention paper - sections 3 and 4.\nOne question for Friday.\n")
+
+
+def enrich_workspace():
+    """Fill the existing demo projects once, without touching a database that already has discussions."""
+    if ProjectDiscussion.query.first():
+        return
+    aarav = User.query.filter_by(username="aarav").first()
+    kabir = User.query.filter_by(username="kabir").first()
+    sofia = User.query.filter_by(username="sofia").first()
+    if not aarav:
+        return
+    now = utcnow()
+    nav = Project.query.filter_by(slug="campus-navigator").first()
+    if nav:
+        if not nav.category or nav.category == "Other":
+            nav.category = "Web Development"
+        if not nav.visibility:
+            nav.visibility = "public"
+        _ensure_task(nav, "Mark the gates that lock at 8", aarav, None, "TODO", "Medium", now + timedelta(days=4))
+        _ensure_task(nav, "Review the Friday hours", aarav, aarav, "REVIEW", "Medium", now + timedelta(days=1))
+        _ensure_task(nav, "Publish the first map pin", aarav, kabir, "DONE", "Low", now - timedelta(days=1))
+        if not Note.query.filter_by(project_id=nav.id).first():
+            db.session.add(
+                Note(
+                    user_id=aarav.id,
+                    project_id=nav.id,
+                    title="Lab hours that are actually true",
+                    body="Ask the night guard before trusting the printed sheet. The small lab stays open on Fridays.",
+                    created_at=now - timedelta(days=1),
+                )
+            )
+        if not ProjectDiscussion.query.filter_by(project_id=nav.id).first():
+            db.session.add(
+                ProjectDiscussion(
+                    project_id=nav.id,
+                    author_id=aarav.id,
+                    kind="announcement",
+                    title="We are mapping real hours",
+                    body="Skip the brochure. If a lab was closed last week, say so in the thread.",
+                    created_at=now - timedelta(days=2),
+                )
+            )
+            if kabir:
+                db.session.add(
+                    ProjectDiscussion(
+                        project_id=nav.id,
+                        author_id=kabir.id,
+                        kind="question",
+                        title="Which lab stays open during exams?",
+                        body="I can check the notice board tomorrow if nobody has the list.",
+                        created_at=now - timedelta(hours=6),
+                    )
+                )
+        if not FileItem.query.filter_by(project_id=nav.id).first():
+            group_key = uuid.uuid4().hex
+            _demo_file(aarav, nav, "hours.txt", "Lab hours, first pass.\n", 1, group_key, now - timedelta(days=2))
+            _demo_file(kabir or aarav, nav, "hours.txt", "Lab hours, checked with the guard.\n", 2, group_key, now - timedelta(hours=8))
+        if not Activity.query.filter_by(project_id=nav.id).first():
+            db.session.add(
+                Activity(
+                    user_id=aarav.id,
+                    project_id=nav.id,
+                    summary=f"{aarav.name} created a task",
+                    link=f"/projects/{nav.slug}",
+                    created_at=now - timedelta(days=3),
+                )
+            )
+            if kabir:
+                db.session.add(
+                    Activity(
+                        user_id=kabir.id,
+                        project_id=nav.id,
+                        summary=f"{kabir.name} joined the project",
+                        link=f"/projects/{nav.slug}",
+                        created_at=now - timedelta(days=4),
+                    )
+                )
+    notes_project = Project.query.filter_by(slug="studybuddy-notes").first()
+    if notes_project and (not notes_project.category or notes_project.category == "Other"):
+        notes_project.category = "Academics"
+    if sofia and not Project.query.filter_by(published=True).first():
+        poster = Project(
+            name="Night Market Poster",
+            slug=unique_slug(Project, "Night Market Poster"),
+            description="A finished poster set for the campus night market. Published so the next team can see what shipped.",
+            category="Design",
+            status="Completed",
+            visibility="public",
+            published=True,
+            published_at=now - timedelta(days=3),
+            creator_id=sofia.id,
+            created_at=now - timedelta(days=12),
+        )
+        db.session.add(poster)
+        db.session.flush()
+        db.session.add(ProjectMember(project_id=poster.id, user_id=sofia.id, role="owner"))
+        db.session.add(
+            Task(
+                project_id=poster.id,
+                title="Export the final poster",
+                created_by=sofia.id,
+                assignee_id=sofia.id,
+                status="DONE",
+                priority="Medium",
+            )
+        )
+        db.session.add(
+            ProjectDiscussion(
+                project_id=poster.id,
+                author_id=sofia.id,
+                kind="update",
+                title="Poster is up",
+                body="Printed and pinned. This one can live in the showcase.",
+            )
+        )
+    db.session.commit()
+
+
+def _ensure_task(project, title, creator, assignee, status, priority, deadline):
+    if Task.query.filter_by(project_id=project.id, title=title).first():
+        return
+    db.session.add(
+        Task(
+            project_id=project.id,
+            title=title,
+            created_by=creator.id,
+            assignee_id=assignee.id if assignee else None,
+            status=status,
+            priority=priority,
+            deadline=deadline,
+        )
+    )
+
+
+def _demo_file(owner, project, name, body, version, group_key, created_at):
+    stored = f"{uuid.uuid4().hex}.txt"
+    directory = current_app.config["FILE_FOLDER"]
+    os.makedirs(directory, exist_ok=True)
+    with open(os.path.join(directory, stored), "w", encoding="utf-8") as handle:
+        handle.write(body)
+    db.session.add(
+        FileItem(
+            owner_id=owner.id,
+            project_id=project.id,
+            stored_name=stored,
+            original_name=name,
+            size=len(body.encode("utf-8")),
+            mime="text/plain",
+            folder="Documents",
+            group_key=group_key,
+            version=version,
+            created_at=created_at,
+        )
+    )
+
+def enrich_ecosystem():
+    """Add clubs, opportunities, and public portfolio details without rewriting earlier seeds."""
+    aarav = User.query.filter_by(username="aarav").first()
+    if not aarav:
+        return
+    now = utcnow()
+    for event in Event.query.filter((Event.category.is_(None)) | (Event.category == "")).all():
+        title = (event.title or "").lower()
+        if "paper" in title or "workshop" in title:
+            event.category = "Workshop"
+        elif "photo" in title or "walk" in title:
+            event.category = "Meetup"
+        else:
+            event.category = "Event"
+    poster = Project.query.filter_by(slug="night-market-poster").first()
+    if poster and not poster.technologies:
+        poster.technologies = "Figma, Print, Photography"
+    question = Question.query.filter(Question.title.contains("confusion matrix")).first()
+    if question and not question.subject:
+        question.subject = "Statistics"
+    for resource in AcademicResource.query.filter((AcademicResource.tags.is_(None)) | (AcademicResource.tags == "")).all():
+        if "graph" in (resource.title or "").lower():
+            resource.tags = "algorithms, graphs"
+            resource.kind = "Reference Material"
+            if resource.subject not in {
+                "Programming", "Mathematics", "Machine Learning", "Data Science", "Computer Science",
+                "Electronics", "Algorithms", "Web Development", "Statistics", "Design", "Other",
+            }:
+                resource.subject = "Algorithms"
+        elif "glass" in (resource.title or "").lower():
+            resource.tags = "css, interface"
+            resource.kind = "Notes"
+            resource.subject = resource.subject or "Web Development"
+    if not Event.query.filter_by(category="Hackathon").first():
+        db.session.add(
+            Event(
+                creator_id=aarav.id,
+                title="Sangam weekend hack",
+                description="Thirty-six hours. Bring a teammate or find one on the idea board.",
+                location="Main lab, Sangam Institute",
+                category="Hackathon",
+                registration_link="https://example.com/sangam-weekend-hack",
+                starts_at=now + timedelta(days=12),
+            )
+        )
+    if Community.query.filter_by(kind="club").first():
+        db.session.commit()
+        return
+    sofia = User.query.filter_by(username="sofia").first()
+    mira = User.query.filter_by(username="mira").first()
+    kabir = User.query.filter_by(username="kabir").first()
+    leo = User.query.filter_by(username="leo").first()
+
+    def club(owner, name, description, category):
+        if not owner or Community.query.filter_by(name=name).first():
+            return None
+        row = Community(
+            name=name,
+            slug=unique_slug(Community, name),
+            description=description,
+            category=category,
+            kind="club",
+            visibility="public",
+            creator_id=owner.id,
+            created_at=now - timedelta(days=5),
+        )
+        db.session.add(row)
+        db.session.flush()
+        db.session.add(CommunityMember(community_id=row.id, user_id=owner.id, role="owner"))
+        return row
+
+    club(aarav, "Coding Club", "Weekly builds, office hours, and a place to ask the question that does not fit a lecture.", "College Clubs")
+    club(sofia or aarav, "Photography Club", "Campus walks, lighting notes, and critique that stays kind.", "Photography")
+    club(leo or aarav, "Robotics Club", "A bench, a battery, and the patience to try the mechanism again.", "Other")
+    if not Community.query.filter_by(name="Study Hall").first():
+        hall = Community(
+            name="Study Hall",
+            slug=unique_slug(Community, "Study Hall"),
+            description="A public room for subject questions that are bigger than one project.",
+            category="Academics",
+            kind="community",
+            visibility="public",
+            creator_id=aarav.id,
+        )
+        db.session.add(hall)
+        db.session.flush()
+        db.session.add(CommunityMember(community_id=hall.id, user_id=aarav.id, role="owner"))
+        db.session.add(
+            Post(
+                community_id=hall.id,
+                author_id=aarav.id,
+                title="Bring the problem set, not the panic",
+                body="Post the subject and the line you are stuck on. Someone in the room has seen it before.",
+            )
+        )
+    if not aarav.mentor_role:
+        aarav.mentor_role = "mentor"
+    if kabir and not kabir.mentor_role:
+        kabir.mentor_role = "mentee"
+    if mira and not mira.mentor_role:
+        mira.mentor_role = "both"
+    if not aarav.profile_public:
+        aarav.profile_public = True
+        aarav.public_sections = "about,skills,education,projects,achievements,communities"
+    if sofia and not sofia.profile_public:
+        sofia.profile_public = True
+        sofia.certifications = sofia.certifications or "Campus design studio, year 2"
+        sofia.honors = sofia.honors or "Night market poster, printed and pinned"
+        sofia.public_sections = "about,skills,projects,achievements,certifications"
+    idea = Idea.query.filter_by(title="A quieter attendance tool for clubs").first()
+    if idea and kabir and not IdeaInterest.query.filter_by(idea_id=idea.id, user_id=kabir.id).first():
+        db.session.add(IdeaInterest(idea_id=idea.id, user_id=kabir.id))
+    db.session.commit()

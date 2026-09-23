@@ -1,0 +1,71 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Files · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <nav class="tabs" aria-label="Folders">
+    <a class="{% if not active_folder %}active{% endif %}" href="{{ url_for('workspace.project_files', slug=project.slug) }}">All</a>
+    {% for folder in folders %}
+    <a class="{% if active_folder == folder %}active{% endif %}" href="{{ url_for('workspace.project_files', slug=project.slug, folder=folder) }}">{{ folder }}</a>
+    {% endfor %}
+  </nav>
+  {% if can_contribute %}
+  <form class="glass filters" method="post" enctype="multipart/form-data">
+    {{ csrf() }}
+    <input type="file" name="file" required>
+    <select name="folder">
+      <option value="">Auto folder</option>
+      {% for folder in folders %}<option {% if active_folder == folder %}selected{% endif %}>{{ folder }}</option>{% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Upload</button>
+  </form>
+  {% endif %}
+  <div class="stack">
+    {% for versions in groups %}
+    {% set current = versions[0] %}
+    <article class="glass panel">
+      <header class="panel-head">
+        <div>
+          <h2>{{ current.original_name }}</h2>
+          <p class="muted">{{ current.folder }} · v{{ current.version }} · {{ current.mime or 'file' }} · {{ (current.size / 1024)|round(1) }} KB · {{ current.owner.name }} · {{ current.created_at|dt }}</p>
+        </div>
+        <a href="{{ url_for('workspace.project_file_download', slug=project.slug, file_id=current.id) }}">Download</a>
+      </header>
+      {% if versions|length > 1 %}
+      <ul class="mini-list plain">
+        {% for item in versions %}
+        <li>
+          <span><strong>v{{ item.version }}</strong><em>{{ item.original_name }} · {{ item.owner.name }} · {{ item.created_at|dt }} · {{ (item.size / 1024)|round(1) }} KB</em></span>
+          <a href="{{ url_for('workspace.project_file_download', slug=project.slug, file_id=item.id) }}">Download</a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if can_contribute %}
+      <div class="row-actions">
+        {% if can_manage or current.owner_id == current_user.id %}
+        <form method="post" action="{{ url_for('workspace.project_file_rename', slug=project.slug, file_id=current.id) }}" class="inline-form">
+          {{ csrf() }}
+          <input name="name" value="{{ current.original_name }}" required maxlength="180" aria-label="Rename file">
+          <button class="btn btn-soft btn-sm" type="submit">Rename</button>
+        </form>
+        <form method="post" action="{{ url_for('workspace.project_file_delete', slug=project.slug, file_id=current.id) }}">
+          {{ csrf() }}
+          <button class="text-btn" type="submit">Delete</button>
+        </form>
+        {% endif %}
+        <form method="post" action="{{ url_for('workspace.project_file_version', slug=project.slug, file_id=current.id) }}" enctype="multipart/form-data" class="inline-form">
+          {{ csrf() }}
+          <input type="file" name="file" required aria-label="New version">
+          <button class="btn btn-soft btn-sm" type="submit">New version</button>
+        </form>
+      </div>
+      {% endif %}
+    </article>
+    {% else %}
+    <article class="glass empty"><h3>No files in this folder</h3><p>Upload a document, image, deck, or snippet. Later uploads can become v2 and v3.</p></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

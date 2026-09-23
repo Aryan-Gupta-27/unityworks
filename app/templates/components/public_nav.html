@@ -7,7 +7,8 @@
   <nav class="public-links" aria-label="Primary">
     <a href="{{ url_for('main.landing') }}#top" class="{% if request.endpoint == 'main.landing' %}active{% endif %}">Home</a>
     <a href="{{ url_for('main.landing') }}#features">Features</a>
-    <a href="{{ url_for('communities.index') }}" class="{% if request.endpoint in ['communities.index', 'communities.groups'] %}active{% endif %}">Communities</a>
+    <a href="{{ url_for('communities.index') }}" class="{% if request.endpoint in ['communities.index', 'communities.groups', 'communities.clubs'] %}active{% endif %}">Communities</a>
+    <a href="{{ url_for('workspace.project_showcase') }}" class="{% if request.endpoint in ['workspace.project_showcase', 'workspace.project_showcase_detail'] %}active{% endif %}">Showcase</a>
     <a href="{{ url_for('main.about') }}" class="{% if request.endpoint == 'main.about' %}active{% endif %}">About</a>
   </nav>
   <div class="nav-actions">

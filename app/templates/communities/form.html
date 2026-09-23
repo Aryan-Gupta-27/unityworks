@@ -5,8 +5,8 @@
 <section class="page narrow">
   <header class="page-head">
     <div>
-      <p class="eyebrow">{{ 'Group' if kind == 'group' else 'Community' }}</p>
-      <h1>{{ 'Edit ' + community.name if community else ('Create a group' if kind == 'group' else 'Create a community') }}</h1>
+      <p class="eyebrow">{{ 'Group' if kind == 'group' else ('Club' if kind == 'club' else 'Community') }}</p>
+      <h1>{{ 'Edit ' + community.name if community else ('Create a ' + ('group' if kind == 'group' else ('club' if kind == 'club' else 'community'))) }}</h1>
     </div>
   </header>
   <form class="glass form-card" method="post">

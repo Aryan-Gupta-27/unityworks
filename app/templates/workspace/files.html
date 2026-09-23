@@ -1,5 +1,5 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import csrf, empty %}
+{% from "components/macros.html" import csrf, empty, pager %}
 {% block title %}Files · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
@@ -30,10 +30,11 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="4">No files yet.</td></tr>
+        <tr><td colspan="4">No files yet. Upload a PDF, image, or note above.</td></tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
+  {{ pager(pagination) }}
 </section>
 {% endblock %}

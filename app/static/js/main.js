@@ -86,4 +86,38 @@
     setInterval(poll, 4000);
     if (token) thread.dataset.csrf = token.value;
   }
+
+  const board = document.querySelector("[data-kanban]");
+  if (board) {
+    const token = document.querySelector('meta[name="csrf-token"]');
+    board.querySelectorAll(".drag-handle").forEach((handle) => {
+      handle.addEventListener("dragstart", (event) => {
+        event.dataTransfer.setData("text/plain", handle.dataset.taskId);
+      });
+    });
+    board.querySelectorAll(".kanban-col").forEach((column) => {
+      column.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        column.classList.add("over");
+      });
+      column.addEventListener("dragleave", () => column.classList.remove("over"));
+      column.addEventListener("drop", async (event) => {
+        event.preventDefault();
+        column.classList.remove("over");
+        const id = event.dataTransfer.getData("text/plain");
+        const card = board.querySelector(`.kanban-card[data-task-id="${id}"]`);
+        if (!card || !card.dataset.url) return;
+        const body = new URLSearchParams();
+        body.set("status", column.dataset.status);
+        body.set("next", "board");
+        if (token) body.set("csrf_token", token.content);
+        const response = await fetch(card.dataset.url, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: body.toString(),
+        });
+        if (response.ok) window.location.reload();
+      });
+    });
+  }
 })();

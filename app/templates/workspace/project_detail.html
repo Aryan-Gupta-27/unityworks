@@ -1,59 +1,47 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import csrf, avatar %}
+{% from "components/macros.html" import avatar %}
 {% block title %}{{ project.name }} · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
-  <header class="page-head">
-    <div>
-      <p class="eyebrow">Project · {{ project.status }}</p>
-      <h1>{{ project.name }}</h1>
-      <p class="lede">{{ project.description or 'No description yet.' }}</p>
-    </div>
-    {% if pending %}
-    <form method="post" action="{{ url_for('workspace.project_respond', invite_id=pending.id) }}">
-      {{ csrf() }}
-      <button class="btn btn-primary" name="status" value="accepted">Accept invite</button>
-      <button class="btn btn-ghost" name="status" value="declined">Decline</button>
-    </form>
-    {% endif %}
-  </header>
-  <div class="community-layout">
+  {% include "workspace/_project_frame.html" %}
+  <div class="dash-split">
     <section class="glass panel">
-      <h2>Tasks</h2>
+      <header class="panel-head"><h2>Recent tasks</h2><a href="{{ url_for('workspace.project_tasks', slug=project.slug) }}">All tasks</a></header>
       <ul class="mini-list plain">
-        {% for task in project.tasks %}
-        <li><span><strong>{{ task.title }}</strong><em>{{ task.status }}{% if task.assignee %} · {{ task.assignee.name }}{% endif %}</em></span></li>
-        {% else %}<li class="muted">No tasks yet.</li>{% endfor %}
-      </ul>
-      {% if member %}
-      <form method="post" action="{{ url_for('workspace.add_task', slug=project.slug) }}" class="stack-form">
-        {{ csrf() }}
-        <input name="title" placeholder="Task title" required maxlength="140">
-        <select name="assignee_id">
-          <option value="">Unassigned</option>
-          {% for row in project.memberships %}
-          <option value="{{ row.user_id }}">{{ row.user.name }}</option>
-          {% endfor %}
-        </select>
-        <button class="btn btn-primary btn-sm" type="submit">Add task</button>
-      </form>
-      {% endif %}
-    </section>
-    <aside class="glass panel">
-      <h2>Members</h2>
-      <ul class="people">
-        {% for row in project.memberships %}
-        <li><a href="{{ url_for('profile.view', username=row.user.username) }}">{{ avatar(row.user, 'sm') }} <span>{{ row.user.name }}</span> <em>{{ row.role }}</em></a></li>
+        {% for task in recent_tasks %}
+        <li>
+          <a href="{{ url_for('workspace.project_tasks', slug=project.slug) }}#task-{{ task.id }}">
+            <span>
+              <strong>{{ task.title }}</strong>
+              <em>{{ task.status }}{% if task.assignee %} · {{ task.assignee.name }}{% endif %}{% if task.is_overdue %} · Overdue{% endif %}</em>
+            </span>
+          </a>
+        </li>
+        {% else %}
+        <li class="muted">No tasks yet. The board is ready when the work has a name.</li>
         {% endfor %}
       </ul>
-      {% if member and member.role == 'owner' %}
-      <form method="post" action="{{ url_for('workspace.project_invite', slug=project.slug) }}" class="stack-form">
-        {{ csrf() }}
-        <input name="username" placeholder="Invite by username" required>
-        <button class="btn btn-soft btn-sm" type="submit">Invite</button>
-      </form>
-      {% endif %}
-    </aside>
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Team</h2><a href="{{ url_for('workspace.project_members', slug=project.slug) }}">Members</a></header>
+      <ul class="people">
+        {% for row in project.memberships %}
+        <li><a href="{{ url_for('profile.view', username=row.user.username) }}">{{ avatar(row.user, 'sm') }} <span>{{ row.user.name }}</span> <em>{{ row.role_label }}</em></a></li>
+        {% endfor %}
+      </ul>
+    </section>
   </div>
+  <section class="glass panel">
+    <header class="panel-head"><h2>Project activity</h2><a href="{{ url_for('workspace.project_activity', slug=project.slug) }}">Feed</a></header>
+    {% if activity %}
+    <ul class="activity-feed">
+      {% for item in activity %}
+      <li><i></i><div><span>{{ item.summary }}</span><time>{{ item.created_at|ago }}</time></div></li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">Joins, uploads, and completed tasks will collect here.</p>
+    {% endif %}
+  </section>
 </section>
 {% endblock %}

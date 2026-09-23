@@ -7,10 +7,21 @@
   <form class="glass form-card" method="post">
     {{ csrf() }}
     <label class="field"><span>Name</span><input name="name" required maxlength="80" value="{{ form.get('name','') }}" class="{% if errors.name %}invalid{% endif %}">{% if errors.name %}<small class="field-error">{{ errors.name }}</small>{% endif %}</label>
-    <label class="field"><span>Description</span><textarea name="description" rows="5">{{ form.get('description','') }}</textarea></label>
-    <label class="field"><span>Status</span>
-      <select name="status">{% for status in statuses %}<option>{{ status }}</option>{% endfor %}</select>
+    <label class="field"><span>Description</span><textarea name="description" rows="5">{{ form.get('description','') }}</textarea>{% if errors.description %}<small class="field-error">{{ errors.description }}</small>{% endif %}</label>
+    <label class="field"><span>Category</span>
+      <select name="category">{% for category in categories %}<option {% if form.get('category', 'Other') == category %}selected{% endif %}>{{ category }}</option>{% endfor %}</select>
     </label>
+    <div class="split-fields">
+      <label class="field"><span>Status</span>
+        <select name="status">{% for status in statuses %}<option {% if form.get('status', 'Planning') == status %}selected{% endif %}>{{ status }}</option>{% endfor %}</select>
+      </label>
+      <label class="field"><span>Visibility</span>
+        <select name="visibility">
+          <option value="public" {% if form.get('visibility', 'public') == 'public' %}selected{% endif %}>Public</option>
+          <option value="private" {% if form.get('visibility') == 'private' %}selected{% endif %}>Private</option>
+        </select>
+      </label>
+    </div>
     <button class="btn btn-primary" type="submit">Create project</button>
   </form>
 </section>

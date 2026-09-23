@@ -1,7 +1,7 @@
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 
-from app.constants import COMMUNITY_CATEGORIES
+from app.constants import COMMUNITY_CATEGORIES, COMMUNITY_KINDS
 from app.extensions import db
 from app.models import (
     Comment,
@@ -29,6 +29,16 @@ from app.services import (
 from app.validators import clip
 
 communities_bp = Blueprint("communities", __name__)
+
+KIND_HOME = {
+    "community": "communities.index",
+    "group": "communities.groups",
+    "club": "communities.clubs",
+}
+
+
+def _home(kind):
+    return url_for(KIND_HOME.get(kind, "communities.index"))
 
 
 def _community(slug):
@@ -74,11 +84,16 @@ def groups():
     return _list("group")
 
 
+@communities_bp.route("/clubs")
+def clubs():
+    return _list("club")
+
+
 @communities_bp.route("/communities/new", methods=["GET", "POST"])
 @login_required
 def create():
     kind = request.values.get("kind", "community")
-    if kind not in {"community", "group"}:
+    if kind not in COMMUNITY_KINDS:
         kind = "community"
     errors = {}
     form = request.form if request.method == "POST" else {}
@@ -87,7 +102,7 @@ def create():
         description, desc_error = clip(form.get("description"), 1000, required=True, label="Description")
         category = (form.get("category") or "").strip()
         visibility = (form.get("visibility") or "public").strip()
-        kind = form.get("kind") if form.get("kind") in {"community", "group"} else "community"
+        kind = form.get("kind") if form.get("kind") in COMMUNITY_KINDS else "community"
         if name_error:
             errors["name"] = name_error
         if desc_error:
@@ -232,7 +247,7 @@ def delete(slug):
     db.session.delete(community)
     db.session.commit()
     flash("Deleted.", "success")
-    return redirect(url_for("communities.groups" if kind == "group" else "communities.index"))
+    return redirect(_home(kind))
 
 
 @communities_bp.route("/communities/<slug>/join", methods=["POST"])

@@ -1,9 +1,9 @@
 {% extends "app_base.html" %}
-{% from "components/macros.html" import csrf %}
+{% from "components/macros.html" import csrf, pager, empty %}
 {% block title %}Project ideas · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
-  <header class="page-head"><div><p class="eyebrow">Project ideas</p><h1>Something worth starting.</h1></div></header>
+  <header class="page-head"><div><p class="eyebrow">Idea board</p><h1>Something worth starting.</h1><p class="lede">Post an idea, see who is interested, then turn it into a project.</p></div></header>
   <form class="glass form-card" method="post">
     {{ csrf() }}
     <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
@@ -17,9 +17,28 @@
       <h2>{{ idea.title }}</h2>
       <p>{{ idea.description }}</p>
       {% if idea.skills_needed %}<p class="muted">Needs {{ idea.skills_needed }}</p>{% endif %}
-      <a href="{{ url_for('profile.view', username=idea.author.username) }}">{{ idea.author.name }}</a>
+      <p class="muted">Interested: {% if interests.get(idea.id) %}{{ interests[idea.id]|map(attribute='user.name')|join(', ') }}{% else %}no one yet{% endif %}</p>
+      <footer>
+        <a href="{{ url_for('profile.view', username=idea.author.username) }}">{{ idea.author.name }}</a>
+        {% if idea.project %}
+        <a href="{{ url_for('workspace.project_detail', slug=idea.project.slug) }}">Open project</a>
+        {% elif idea.author_id == current_user.id %}
+        <form method="post" action="{{ url_for('workspace.idea_start', idea_id=idea.id) }}">
+          {{ csrf() }}
+          <button class="btn btn-primary btn-sm" type="submit">Turn into a project</button>
+        </form>
+        {% else %}
+        <form method="post" action="{{ url_for('workspace.idea_interest', idea_id=idea.id) }}">
+          {{ csrf() }}
+          <button class="btn btn-soft btn-sm" type="submit">{% if idea.id in mine %}Withdraw interest{% else %}I'm interested{% endif %}</button>
+        </form>
+        {% endif %}
+      </footer>
     </article>
+    {% else %}
+    {{ empty('No ideas yet', 'Use the form above when the idea is specific enough to invite people.') }}
     {% endfor %}
   </div>
+  {{ pager(pagination) }}
 </section>
 {% endblock %}

@@ -1,6 +1,8 @@
 # UnityWorks
 
-A student workspace for accounts, profiles, communities, discussions, and messages. One Flask application, one SQLite database, one glass interface.
+A student workspace for accounts, profiles, communities, messages, projects, and the academic life around them. One Flask application, one SQLite database, one glass interface.
+
+Install, environment variables, deploy, admin, and backup are in [docs/operations.md](docs/operations.md).
 
 ## Run
 
@@ -46,4 +48,4 @@ unityworks/
 └── run.py
 ```
 
-Roles (`student`, `admin`) and community roles (`owner`, `moderator`, `member`) are checked on the server.
+Roles (`student`, `admin`), community roles (`owner`, `moderator`, `member`), and project roles (`owner`, `manager`, `contributor`, `viewer`) are checked on the server. A project workspace covers tasks, a kanban board, files with versions, notes, discussions, and publishing a completed project to `/showcase`.

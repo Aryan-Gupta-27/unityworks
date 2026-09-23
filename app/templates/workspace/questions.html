@@ -1,19 +1,27 @@
 {% extends "app_base.html" %}
+{% from "components/macros.html" import pager, empty %}
 {% block title %}Questions · UnityWorks{% endblock %}
 {% block content %}
 <section class="page">
   <header class="page-head">
-    <div><p class="eyebrow">Questions</p><h1>Ask the room.</h1></div>
+    <div><p class="eyebrow">Academic Q&amp;A</p><h1>Ask the room.</h1></div>
     <a class="btn btn-primary" href="{{ url_for('workspace.question_new') }}">Ask a question</a>
   </header>
+  <div class="tabs">
+    <a class="{% if not subject %}active{% endif %}" href="{{ url_for('workspace.questions') }}">All</a>
+    {% for item in subjects %}
+    <a class="{% if subject == item %}active{% endif %}" href="{{ url_for('workspace.questions', subject=item) }}">{{ item }}</a>
+    {% endfor %}
+  </div>
   <div class="stack">
     {% for question in questions %}
     <a class="glass result" href="{{ url_for('workspace.question_detail', question_id=question.id) }}">
-      <span><strong>{{ question.title }}</strong><em>{{ question.author.name }} · {{ question.answers|length }} answers · {{ question.tags }}</em></span>
+      <span><strong>{{ question.title }}</strong><em>{{ question.subject or 'General' }} · {{ question.author.name }} · {{ question.answers|length }} answers · {{ question.tags }}</em></span>
     </a>
     {% else %}
-    <article class="glass empty"><h3>No questions yet.</h3></article>
+    {{ empty('No questions yet', 'Ask the thing you are stuck on.', url_for('workspace.question_new'), 'Ask a question') }}
     {% endfor %}
   </div>
+  {{ pager(pagination) }}
 </section>
 {% endblock %}

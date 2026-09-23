@@ -7,7 +7,10 @@
       <p class="eyebrow">Projects</p>
       <h1>Work with a name.</h1>
     </div>
-    <a class="btn btn-primary" href="{{ url_for('workspace.project_new') }}">New project +</a>
+    <div class="row-actions">
+      <a class="btn btn-ghost" href="{{ url_for('workspace.project_showcase') }}">Showcase</a>
+      <a class="btn btn-primary" href="{{ url_for('workspace.project_new') }}">New project +</a>
+    </div>
   </header>
   <h2 class="section-label">Yours</h2>
   <div class="card-grid">
@@ -16,11 +19,25 @@
       <span class="badge">{{ project.status }}</span>
       <h2>{{ project.name }}</h2>
       <p>{{ project.description or 'No description yet.' }}</p>
+      <div class="progress-bar slim" aria-hidden="true"><span style="width: {{ project.completion }}%"></span></div>
+      <footer>{{ project.category }} · {{ project.completion }}%</footer>
     </a>
     {% else %}
-    <article class="glass community-card"><h2>No projects yet.</h2><p>Create one when the work is real enough to name.</p></article>
+    <article class="glass community-card"><h2>No projects yet.</h2><p>Create one when the work is real enough to name.</p><a class="btn btn-primary btn-sm" href="{{ url_for('workspace.project_new') }}">Create a project</a></article>
     {% endfor %}
   </div>
+  {% if archived %}
+  <h2 class="section-label">Archived</h2>
+  <div class="card-grid">
+    {% for project in archived %}
+    <a class="glass community-card dim" href="{{ url_for('workspace.project_detail', slug=project.slug) }}">
+      <span class="badge">Archived</span>
+      <h2>{{ project.name }}</h2>
+      <p>{{ project.description or 'Archived project.' }}</p>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
   {% if discover %}
   <h2 class="section-label">Around the workspace</h2>
   <div class="card-grid">

@@ -7,6 +7,14 @@
   <form class="glass form-card" method="post">
     {{ csrf() }}
     <label class="field"><span>Title</span><input name="title" required maxlength="160" value="{{ form.get('title','') }}">{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+    <label class="field"><span>Subject</span>
+      <select name="subject">
+        {% for item in subjects %}
+        <option value="{{ item }}" {% if form.get('subject') == item %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+      {% if errors.subject %}<small class="field-error">{{ errors.subject }}</small>{% endif %}
+    </label>
     <label class="field"><span>Details</span><textarea name="body" rows="6" required>{{ form.get('body','') }}</textarea>{% if errors.body %}<small class="field-error">{{ errors.body }}</small>{% endif %}</label>
     <label class="field"><span>Tags</span><input name="tags" value="{{ form.get('tags','') }}" placeholder="flask, statistics"></label>
     <button class="btn btn-primary" type="submit">Post question</button>

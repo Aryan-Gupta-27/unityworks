@@ -11,6 +11,10 @@
     </div>
     <a class="btn btn-primary" href="{{ url_for('workspace.note_new') }}">New note +</a>
   </header>
+  <form class="glass filters" method="get">
+    <input type="search" name="q" value="{{ q or '' }}" placeholder="Search your notes">
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
   <div class="card-grid">
     {% for note in notes %}
     <article class="glass note-tile">

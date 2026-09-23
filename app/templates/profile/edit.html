@@ -24,6 +24,9 @@
     <label class="field"><span>Skills</span><input name="skills" value="{{ current_user.skills or '' }}" placeholder="Python, Flask, SQL">{% if errors.skills %}<small class="field-error">{{ errors.skills }}</small>{% endif %}</label>
     <label class="field"><span>Interests</span><input name="interests" value="{{ current_user.interests or '' }}" placeholder="Research, Hackathons"></label>
     <label class="field"><span>Education</span><input name="education" value="{{ current_user.education or '' }}"></label>
+    <label class="field"><span>Experience note</span><textarea name="experience_note" maxlength="400" rows="3">{{ current_user.experience_note or '' }}</textarea></label>
+    <label class="field"><span>Achievements</span><textarea name="honors" maxlength="400" rows="2" placeholder="Hackathon finalist, club lead">{{ current_user.honors or '' }}</textarea></label>
+    <label class="field"><span>Certifications</span><textarea name="certifications" maxlength="400" rows="2">{{ current_user.certifications or '' }}</textarea></label>
     <div class="split-fields">
       <label class="field"><span>College / institution</span><input name="college" value="{{ current_user.college or '' }}"></label>
       <label class="field"><span>Program</span><input name="program" value="{{ current_user.program or '' }}"></label>
@@ -39,6 +42,21 @@
           {% endfor %}
         </select>
       </label>
+    </div>
+    <label class="field">
+      <span>Mentorship</span>
+      <select name="mentor_role">
+        <option value="">Not listed</option>
+        {% for role in mentor_roles %}
+        <option value="{{ role }}" {% if current_user.mentor_role == role %}selected{% endif %}>{{ role|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" name="profile_public" value="1" {% if current_user.profile_public %}checked{% endif %}> Share a public page at /u/{{ current_user.username }}</label>
+    <div class="check-grid">
+      {% for section in public_sections %}
+      <label class="check"><input type="checkbox" name="share_{{ section }}" value="1" {% if section in current_user.shared_sections %}checked{% endif %}> Show {{ section }}</label>
+      {% endfor %}
     </div>
     <button class="btn btn-primary" type="submit">Save profile</button>
   </form>

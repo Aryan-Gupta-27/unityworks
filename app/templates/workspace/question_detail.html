@@ -3,17 +3,48 @@
 {% block title %}{{ question.title }} · UnityWorks{% endblock %}
 {% block content %}
 <section class="page narrow">
-  <p class="eyebrow"><a href="{{ url_for('workspace.questions') }}">Questions</a></p>
+  <p class="eyebrow"><a href="{{ url_for('workspace.questions', subject=question.subject) }}">Questions</a></p>
   <article class="glass post-card">
     <header>{{ avatar(question.author, 'sm') }}<div><strong>{{ question.author.name }}</strong><time>{{ question.created_at|dt }}</time></div></header>
     <h1>{{ question.title }}</h1>
+    <p class="muted">{{ question.subject or 'General' }}</p>
     <div class="rich">{{ question.body|rich }}</div>
     <div class="chips">{% for tag in question.tag_list %}<span>{{ tag }}</span>{% endfor %}</div>
   </article>
   <section class="glass panel">
     <h2>Answers</h2>
-    {% for answer in question.answers %}
-    <article class="comment">{{ avatar(answer.author, 'sm') }}<div><strong>{{ answer.author.name }}</strong><time>{{ answer.created_at|ago }}</time><div class="rich">{{ answer.body|rich }}</div></div></article>
+    {% for answer in answers %}
+    <article class="comment answer-card">
+      {{ avatar(answer.author, 'sm') }}
+      <div>
+        <strong>{{ answer.author.name }}</strong>
+        <time>{{ answer.created_at|ago }}{% if answer.updated_at %} · edited{% endif %}</time>
+        {% if answer.accepted %}<span class="badge ok">Accepted</span>{% endif %}
+        <div class="rich">{{ answer.body|rich }}</div>
+        <div class="vote-row">
+          <form method="post" action="{{ url_for('workspace.answer_vote', answer_id=answer.id) }}">
+            {{ csrf() }}
+            <button class="btn btn-soft btn-sm {% if answer.vote_by(current_user) == 1 %}active{% endif %}" name="value" value="up" type="submit">Upvote</button>
+            <button class="btn btn-soft btn-sm {% if answer.vote_by(current_user) == -1 %}active{% endif %}" name="value" value="down" type="submit">Downvote</button>
+          </form>
+          <span class="muted">{{ answer.score }}</span>
+          {% if question.author_id == current_user.id and answer.author_id != current_user.id and not answer.accepted %}
+          <form method="post" action="{{ url_for('workspace.answer_accept', answer_id=answer.id) }}">{{ csrf() }}<button class="btn btn-primary btn-sm" type="submit">Accept</button></form>
+          {% endif %}
+        </div>
+        {% if answer.author_id == current_user.id %}
+        <details class="details">
+          <summary>Edit answer</summary>
+          <form method="post" action="{{ url_for('workspace.answer_edit', answer_id=answer.id) }}">
+            {{ csrf() }}
+            <label class="field"><span>Answer</span><textarea name="body" rows="4" required>{{ answer.body }}</textarea></label>
+            <button class="btn btn-ghost btn-sm" type="submit">Save</button>
+          </form>
+          <form method="post" action="{{ url_for('workspace.answer_delete', answer_id=answer.id) }}">{{ csrf() }}<button class="text-btn" type="submit">Delete my answer</button></form>
+        </details>
+        {% endif %}
+      </div>
+    </article>
     {% else %}<p class="muted">No answers yet.</p>{% endfor %}
     <form method="post" action="{{ url_for('workspace.answer', question_id=question.id) }}">
       {{ csrf() }}

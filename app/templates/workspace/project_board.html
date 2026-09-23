@@ -1,0 +1,33 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Board · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <div class="kanban" data-kanban>
+    {% for status in statuses %}
+    <section class="glass kanban-col" data-status="{{ status }}">
+      <header><strong>{{ status }}</strong><span>{{ columns[status]|length }}</span></header>
+      {% for task in columns[status] %}
+      <article class="kanban-card {% if task.is_overdue %}overdue{% endif %}" data-task-id="{{ task.id }}" data-url="{{ url_for('workspace.task_status', slug=project.slug, task_id=task.id) }}">
+        {% if task.id in movable %}<span class="drag-handle" draggable="true" data-task-id="{{ task.id }}">Move</span>{% endif %}
+        <a href="{{ url_for('workspace.project_tasks', slug=project.slug) }}#task-{{ task.id }}"><strong>{{ task.title }}</strong></a>
+        <p>{{ task.priority }}{% if task.assignee %} · {{ task.assignee.first_name }}{% endif %}{% if task.deadline %} · {{ task.deadline.strftime('%d %b') }}{% endif %}</p>
+        {% if task.id in movable %}
+        <form method="post" action="{{ url_for('workspace.task_status', slug=project.slug, task_id=task.id) }}">
+          {{ csrf() }}
+          <input type="hidden" name="next" value="board">
+          <select name="status" aria-label="Move {{ task.title }}" onchange="this.form.submit()">
+            {% for option in statuses %}<option {% if option == status %}selected{% endif %}>{{ option }}</option>{% endfor %}
+          </select>
+        </form>
+        {% endif %}
+      </article>
+      {% else %}
+      <p class="muted kanban-empty">Nothing here.</p>
+      {% endfor %}
+    </section>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

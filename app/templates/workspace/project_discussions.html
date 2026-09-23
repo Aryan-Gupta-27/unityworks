@@ -1,0 +1,57 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, avatar %}
+{% block title %}Discussions · {{ project.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  {% include "workspace/_project_frame.html" %}
+  <nav class="tabs" aria-label="Discussion types">
+    <a class="{% if not active_kind %}active{% endif %}" href="{{ url_for('workspace.project_discussions', slug=project.slug) }}">All</a>
+    {% for kind in kinds %}
+    <a class="{% if active_kind == kind %}active{% endif %}" href="{{ url_for('workspace.project_discussions', slug=project.slug, kind=kind) }}">{{ kind|capitalize }}</a>
+    {% endfor %}
+  </nav>
+  {% if can_contribute %}
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <h2>Post to the project</h2>
+    <div class="split-fields">
+      <label class="field"><span>Type</span>
+        <select name="kind">
+          <option value="announcement">Announcement</option>
+          <option value="discussion" selected>Discussion</option>
+          <option value="question">Question</option>
+          <option value="update">Update</option>
+        </select>
+      </label>
+      <label class="field"><span>Title</span><input name="title" required maxlength="140"></label>
+    </div>
+    <label class="field"><span>Message</span><textarea name="body" rows="4" required></textarea></label>
+    <button class="btn btn-primary" type="submit">Post</button>
+  </form>
+  {% endif %}
+  <div class="stack">
+    {% for item in discussions %}
+    <article class="glass panel">
+      <header class="panel-head">
+        <div class="who">
+          {{ avatar(item.author, 'sm') }}
+          <div>
+            <strong>{{ item.title }}</strong>
+            <em>{{ item.kind_label }} · {{ item.author.name }} · {{ item.created_at|ago }}</em>
+          </div>
+        </div>
+        {% if item.author_id == current_user.id or can_manage %}
+        <form method="post" action="{{ url_for('workspace.project_discussion_delete', slug=project.slug, discussion_id=item.id) }}">
+          {{ csrf() }}
+          <button class="text-btn" type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </header>
+      <div class="rich">{{ item.body|rich }}</div>
+    </article>
+    {% else %}
+    <article class="glass empty"><h3>No posts yet</h3><p>Announcements, questions, and short updates live here. Keep it light.</p></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

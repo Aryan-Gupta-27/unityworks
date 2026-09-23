@@ -1,0 +1,40 @@
+{% from "components/macros.html" import csrf %}
+<header class="page-head">
+  <div>
+    <p class="eyebrow">{{ project.category }} · {{ project.status }} · {{ project.visibility_label }}{% if project.published %} · Published{% endif %}</p>
+    <h1>{{ project.name }}</h1>
+    <p class="lede">{{ project.description or 'No description yet.' }}</p>
+  </div>
+  {% if pending %}
+  <form method="post" action="{{ url_for('workspace.project_respond', invite_id=pending.id) }}" class="row-actions">
+    {{ csrf() }}
+    <button class="btn btn-primary" name="status" value="accepted">Accept invite</button>
+    <button class="btn btn-ghost" name="status" value="declined">Decline</button>
+  </form>
+  {% endif %}
+</header>
+<nav class="tabs" aria-label="Project workspace">
+  <a class="{% if tab == 'overview' %}active{% endif %}" href="{{ url_for('workspace.project_detail', slug=project.slug) }}">Overview</a>
+  <a class="{% if tab == 'tasks' %}active{% endif %}" href="{{ url_for('workspace.project_tasks', slug=project.slug) }}">Tasks</a>
+  <a class="{% if tab == 'board' %}active{% endif %}" href="{{ url_for('workspace.project_board', slug=project.slug) }}">Board</a>
+  <a class="{% if tab == 'members' %}active{% endif %}" href="{{ url_for('workspace.project_members', slug=project.slug) }}">Members</a>
+  <a class="{% if tab == 'files' %}active{% endif %}" href="{{ url_for('workspace.project_files', slug=project.slug) }}">Files</a>
+  <a class="{% if tab == 'notes' %}active{% endif %}" href="{{ url_for('workspace.project_notes', slug=project.slug) }}">Notes</a>
+  <a class="{% if tab == 'discussions' %}active{% endif %}" href="{{ url_for('workspace.project_discussions', slug=project.slug) }}">Discussions</a>
+  <a class="{% if tab == 'activity' %}active{% endif %}" href="{{ url_for('workspace.project_activity', slug=project.slug) }}">Activity</a>
+  {% if can_manage %}
+  <a class="{% if tab == 'settings' %}active{% endif %}" href="{{ url_for('workspace.project_settings', slug=project.slug) }}">Settings</a>
+  {% endif %}
+</nav>
+<section class="glass progress-strip">
+  <div class="progress-copy">
+    <strong>{{ stats.completion }}% complete</strong>
+    <span>{{ stats.completed }} of {{ stats.tasks }} tasks done · {{ stats.pending }} pending · {{ stats.overdue }} overdue</span>
+  </div>
+  <div class="progress-bar" role="img" aria-label="{{ stats.completion }} percent complete"><span style="width: {{ stats.completion }}%"></span></div>
+  <div class="metric-row">
+    <span><b>{{ stats.members }}</b> members</span>
+    <span><b>{{ stats.files }}</b> files</span>
+    <span><b>{{ stats.notes }}</b> notes</span>
+  </div>
+</section>
