@@ -1,0 +1,37 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import avatar, csrf %}
+{% block title %}{{ user.name }} · Admin{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('admin.index') }}">Admin</a></p>
+      <h1>{{ user.name }}</h1>
+      <p class="lede">@{{ user.username }} · {{ user.email }}</p>
+    </div>
+    {{ avatar(user, 'lg') }}
+  </header>
+  <article class="glass form-card">
+    <p><span class="badge">{{ user.role }}</span> <span class="badge {% if user.status == 'active' %}ok{% else %}warn{% endif %}">{{ user.status }}</span></p>
+    <p>{{ user.bio or 'No bio.' }}</p>
+    <p class="muted">{{ user.college }} {% if user.program %}· {{ user.program }}{% endif %} {% if user.experience %}· {{ user.experience }}{% endif %}</p>
+    <p class="muted">Joined {{ user.created_at|dt }}</p>
+    <h2>Communities</h2>
+    <ul class="mini-list plain">
+      {% for row in memberships %}
+      <li><span><strong>{{ row.community.name }}</strong><em>{{ row.role }}</em></span></li>
+      {% else %}<li class="muted">No memberships.</li>{% endfor %}
+    </ul>
+    <form method="post" action="{{ url_for('admin.set_status', user_id=user.id) }}" class="inline-form">
+      {{ csrf() }}
+      {% if user.status == 'active' %}
+      <input type="hidden" name="status" value="inactive">
+      <button class="btn btn-danger" type="submit">Deactivate account</button>
+      {% else %}
+      <input type="hidden" name="status" value="active">
+      <button class="btn btn-primary" type="submit">Activate account</button>
+      {% endif %}
+    </form>
+  </article>
+</section>
+{% endblock %}

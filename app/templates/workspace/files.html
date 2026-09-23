@@ -1,0 +1,39 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, empty %}
+{% block title %}Files · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Files</p>
+      <h1>Your shelf.</h1>
+      <p class="lede">PDFs, images, code, and notes you want in one place. Downloads stay attached to your account.</p>
+    </div>
+  </header>
+  <form class="glass filters" method="post" action="{{ url_for('workspace.upload_file') }}" enctype="multipart/form-data">
+    {{ csrf() }}
+    <input type="file" name="file" required>
+    <button class="btn btn-primary" type="submit">Upload</button>
+  </form>
+  <div class="glass table-wrap">
+    <table class="data">
+      <thead><tr><th>Name</th><th>Size</th><th>Added</th><th></th></tr></thead>
+      <tbody>
+        {% for item in files %}
+        <tr>
+          <td>{{ item.original_name }}</td>
+          <td>{{ (item.size / 1024)|round(1) }} KB</td>
+          <td>{{ item.created_at|dt }}</td>
+          <td class="row-actions">
+            <a href="{{ url_for('workspace.download_file', file_id=item.id) }}">Download</a>
+            <form method="post" action="{{ url_for('workspace.delete_file', file_id=item.id) }}">{{ csrf() }}<button class="text-btn" type="submit">Delete</button></form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4">No files yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

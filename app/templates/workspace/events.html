@@ -1,0 +1,38 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Events · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head"><div><p class="eyebrow">Events</p><h1>What's on.</h1></div></header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <div class="split-fields">
+      <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+      <label class="field"><span>When (UTC)</span><input type="datetime-local" name="starts_at" required>{% if errors.starts_at %}<small class="field-error">{{ errors.starts_at }}</small>{% endif %}</label>
+    </div>
+    <label class="field"><span>Location</span><input name="location"></label>
+    <label class="field"><span>Description</span><textarea name="description" rows="3"></textarea></label>
+    <button class="btn btn-primary" type="submit">Add event</button>
+  </form>
+  <div class="card-grid">
+    {% for event in upcoming %}
+    <article class="glass community-card">
+      <span class="badge">Upcoming</span>
+      <h2>{{ event.title }}</h2>
+      <p>{{ event.starts_at|dt }}{% if event.location %} · {{ event.location }}{% endif %}</p>
+      <p>{{ event.description }}</p>
+      <span class="muted">{{ event.creator.name }}</span>
+    </article>
+    {% else %}
+    <article class="glass community-card"><h2>No upcoming events.</h2></article>
+    {% endfor %}
+    {% for event in past %}
+    <article class="glass community-card dim">
+      <span class="badge">Past</span>
+      <h2>{{ event.title }}</h2>
+      <p>{{ event.starts_at|dt }}</p>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

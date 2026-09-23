@@ -1,0 +1,55 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import pager %}
+{% block title %}Admin · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Admin</p>
+      <h1>Accounts</h1>
+      <p class="lede">View students, open a record, and activate or deactivate access. Status is enforced on every request.</p>
+    </div>
+  </header>
+  <div class="stat-row">
+    <div class="glass stat"><span>Users</span><strong>{{ stats.users }}</strong></div>
+    <div class="glass stat"><span>Active</span><strong>{{ stats.active }}</strong></div>
+    <div class="glass stat"><span>Inactive</span><strong>{{ stats.inactive }}</strong></div>
+    <div class="glass stat"><span>Admins</span><strong>{{ stats.admins }}</strong></div>
+  </div>
+  <form class="glass filters" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search name, username, email">
+    <select name="status">
+      <option value="">Any status</option>
+      <option value="active" {% if status == 'active' %}selected{% endif %}>Active</option>
+      <option value="inactive" {% if status == 'inactive' %}selected{% endif %}>Inactive</option>
+    </select>
+    <select name="role">
+      <option value="">Any role</option>
+      <option value="student" {% if role == 'student' %}selected{% endif %}>Student</option>
+      <option value="admin" {% if role == 'admin' %}selected{% endif %}>Admin</option>
+    </select>
+    <button class="btn btn-primary" type="submit">Filter</button>
+  </form>
+  <div class="glass table-wrap">
+    <table class="data">
+      <thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th></th></tr></thead>
+      <tbody>
+        {% for user in pagination.items %}
+        <tr>
+          <td>{{ user.name }}</td>
+          <td>@{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td><span class="badge">{{ user.role }}</span></td>
+          <td><span class="badge {% if user.status == 'active' %}ok{% else %}warn{% endif %}">{{ user.status }}</span></td>
+          <td>{{ user.created_at|dt }}</td>
+          <td><a href="{{ url_for('admin.user_detail', user_id=user.id) }}">View</a></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7">No accounts match.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {{ pager(pagination) }}
+</section>
+{% endblock %}

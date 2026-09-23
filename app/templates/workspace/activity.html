@@ -1,0 +1,22 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import pager %}
+{% block title %}Activity · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head"><div><p class="eyebrow">Activity</p><h1>What you've been doing.</h1></div></header>
+  <ul class="glass activity-feed">
+    {% for item in pagination.items %}
+    <li>
+      <i></i>
+      <div>
+        {% if item.link %}<a href="{{ item.link }}">{{ item.summary }}</a>{% else %}<span>{{ item.summary }}</span>{% endif %}
+        <time>{{ item.created_at|dt }}</time>
+      </div>
+    </li>
+    {% else %}
+    <li>No activity yet.</li>
+    {% endfor %}
+  </ul>
+  {{ pager(pagination) }}
+</section>
+{% endblock %}

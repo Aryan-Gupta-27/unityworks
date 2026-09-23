@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon %}
+{% block title %}About · UnityWorks{% endblock %}
+{% block body_class %}landing page-about{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="section about-page">
+  <img class="lockup large" src="{{ url_for('static', filename='img/logo-lockup.png') }}" alt="Unity Works">
+  <div class="glass prose">
+    <p class="eyebrow">About UnityWorks</p>
+    <h1>One workspace for a scattered study life.</h1>
+    <p>Students already stitch their days together from messaging apps, cloud folders, note tools, and a task list nobody updates. UnityWorks is the attempt to put that loop in one place: identity, community, conversation, and the work itself.</p>
+    <p>Phase 1 is the foundation — accounts, roles, profiles, and a dashboard you can trust. Phase 2 is the social layer: discover people, join a community, discuss, and message. Later phases sit on the same models, the same navigation, and the same glass.</p>
+    <ul class="plain">
+      <li>{{ icon('users') }} Communities with owners, moderators, and members.</li>
+      <li>{{ icon('chat') }} Private messages, unread counts, and history.</li>
+      <li>{{ icon('bell') }} A notification center invitations and comments can share.</li>
+      <li>{{ icon('search') }} Search across people, communities, projects, resources, and questions.</li>
+    </ul>
+    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Join UnityWorks {{ icon('arrow') }}</a>
+  </div>
+</main>
+{% endblock %}

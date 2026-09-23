@@ -1,0 +1,65 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}{{ 'Edit' if community else 'Create' }} {{ kind }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">{{ 'Group' if kind == 'group' else 'Community' }}</p>
+      <h1>{{ 'Edit ' + community.name if community else ('Create a group' if kind == 'group' else 'Create a community') }}</h1>
+    </div>
+  </header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <input type="hidden" name="kind" value="{{ community.kind if community else kind }}">
+    <label class="field">
+      <span>Name</span>
+      <input name="name" required maxlength="80" value="{{ form.get('name', community.name if community else '') }}" class="{% if errors.name %}invalid{% endif %}">
+      {% if errors.name %}<small class="field-error">{{ errors.name }}</small>{% endif %}
+    </label>
+    <label class="field">
+      <span>Description</span>
+      <textarea name="description" required maxlength="1000" rows="5" class="{% if errors.description %}invalid{% endif %}">{{ form.get('description', community.description if community else '') }}</textarea>
+      {% if errors.description %}<small class="field-error">{{ errors.description }}</small>{% endif %}
+    </label>
+    <div class="split-fields">
+      <label class="field">
+        <span>Category</span>
+        <select name="category">
+          {% for item in categories %}
+          <option value="{{ item }}" {% if (form.get('category') or (community.category if community else '')) == item %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label class="field">
+        <span>Visibility</span>
+        <select name="visibility">
+          {% set vis = form.get('visibility', community.visibility if community else 'public') %}
+          <option value="public" {% if vis == 'public' %}selected{% endif %}>Public</option>
+          <option value="private" {% if vis == 'private' %}selected{% endif %}>Private</option>
+        </select>
+      </label>
+    </div>
+    {% if community and members %}
+    <label class="field">
+      <span>Transfer ownership</span>
+      <select name="transfer_to">
+        <option value="">Keep ownership</option>
+        {% for row in members if row.user_id != current_user.id %}
+        <option value="{{ row.user_id }}">{{ row.user.name }} (@{{ row.user.username }})</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <button class="btn btn-primary" type="submit">{{ 'Save changes' if community else 'Create' }}</button>
+  </form>
+  {% if community %}
+  <form class="glass form-card danger-zone" method="post" action="{{ url_for('communities.delete', slug=community.slug) }}" onsubmit="return confirm('Delete this permanently?');">
+    {{ csrf() }}
+    <h2>Delete {{ community.kind_label|lower }}</h2>
+    <p>Posts, comments, and memberships go with it.</p>
+    <button class="btn btn-danger" type="submit">Delete</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

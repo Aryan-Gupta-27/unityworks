@@ -1,0 +1,25 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, avatar %}
+{% block title %}{{ question.title }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <p class="eyebrow"><a href="{{ url_for('workspace.questions') }}">Questions</a></p>
+  <article class="glass post-card">
+    <header>{{ avatar(question.author, 'sm') }}<div><strong>{{ question.author.name }}</strong><time>{{ question.created_at|dt }}</time></div></header>
+    <h1>{{ question.title }}</h1>
+    <div class="rich">{{ question.body|rich }}</div>
+    <div class="chips">{% for tag in question.tag_list %}<span>{{ tag }}</span>{% endfor %}</div>
+  </article>
+  <section class="glass panel">
+    <h2>Answers</h2>
+    {% for answer in question.answers %}
+    <article class="comment">{{ avatar(answer.author, 'sm') }}<div><strong>{{ answer.author.name }}</strong><time>{{ answer.created_at|ago }}</time><div class="rich">{{ answer.body|rich }}</div></div></article>
+    {% else %}<p class="muted">No answers yet.</p>{% endfor %}
+    <form method="post" action="{{ url_for('workspace.answer', question_id=question.id) }}">
+      {{ csrf() }}
+      <label class="field"><span>Your answer</span><textarea name="body" rows="4" required></textarea></label>
+      <button class="btn btn-primary" type="submit">Answer</button>
+    </form>
+  </section>
+</section>
+{% endblock %}

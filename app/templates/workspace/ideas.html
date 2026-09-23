@@ -1,0 +1,25 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Project ideas · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head"><div><p class="eyebrow">Project ideas</p><h1>Something worth starting.</h1></div></header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+    <label class="field"><span>Description</span><textarea name="description" rows="3" required></textarea>{% if errors.description %}<small class="field-error">{{ errors.description }}</small>{% endif %}</label>
+    <label class="field"><span>Skills needed</span><input name="skills_needed" placeholder="Flask, Writing"></label>
+    <button class="btn btn-primary" type="submit">Share idea</button>
+  </form>
+  <div class="card-grid">
+    {% for idea in ideas %}
+    <article class="glass community-card">
+      <h2>{{ idea.title }}</h2>
+      <p>{{ idea.description }}</p>
+      {% if idea.skills_needed %}<p class="muted">Needs {{ idea.skills_needed }}</p>{% endif %}
+      <a href="{{ url_for('profile.view', username=idea.author.username) }}">{{ idea.author.name }}</a>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

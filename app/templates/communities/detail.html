@@ -1,0 +1,82 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import icon, avatar, csrf %}
+{% block title %}{{ community.name }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">{{ community.kind_label }} · {{ community.category }} {% if community.is_private %}· Private{% endif %}</p>
+      <h1>{{ community.name }}</h1>
+      <p class="lede">{{ community.description }}</p>
+    </div>
+    <div class="profile-actions">
+      {% if not member %}
+      <form method="post" action="{{ url_for('communities.join', slug=community.slug) }}">{{ csrf() }}<button class="btn btn-primary" type="submit">{{ 'Request to join' if community.is_private else 'Join' }}</button></form>
+      {% else %}
+      <a class="btn btn-ghost" href="{{ url_for('communities.members', slug=community.slug) }}">{{ community.memberships|length }} members</a>
+      {% if can_edit %}<a class="btn btn-ghost" href="{{ url_for('communities.edit', slug=community.slug) }}">Edit</a>{% endif %}
+      <form method="post" action="{{ url_for('communities.leave', slug=community.slug) }}">{{ csrf() }}<button class="btn btn-soft" type="submit">Leave</button></form>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if requests %}
+  <section class="glass invite-strip">
+    <h2>Join requests</h2>
+    {% for invite in requests %}
+    <div class="invite-row">
+      <div><strong>{{ invite.inviter.name }}</strong><p>@{{ invite.inviter.username }} {% if invite.message %}— {{ invite.message }}{% endif %}</p></div>
+      <form method="post" action="{{ url_for('communities.respond_invite', invite_id=invite.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <div class="community-layout">
+    <div>
+      {% if member %}
+      <form class="glass composer" method="post" action="{{ url_for('communities.create_post', slug=community.slug) }}">
+        {{ csrf() }}
+        <h2>Start a discussion</h2>
+        <label class="field"><span>Title</span><input name="title" maxlength="140" required placeholder="What should people read first?"></label>
+        <label class="field"><span>Post</span><textarea name="body" maxlength="5000" rows="4" required placeholder="Keep it specific. **bold** and `code` work."></textarea></label>
+        <button class="btn btn-primary" type="submit">Publish</button>
+      </form>
+      {% endif %}
+      {% for post in posts %}
+      <article class="glass post-card">
+        <header>
+          {{ avatar(post.author, 'sm') }}
+          <div>
+            <strong>{{ post.author.name }}</strong>
+            <time>{{ post.created_at|ago }}</time>
+          </div>
+        </header>
+        <h2><a href="{{ url_for('communities.post_detail', slug=community.slug, post_id=post.id) }}">{{ post.title }}</a></h2>
+        <p class="clamp">{{ post.body }}</p>
+        <footer>
+          <span>{{ post_meta[post.id].likes }} likes</span>
+          <span>{{ post_meta[post.id].comments }} comments</span>
+          <a href="{{ url_for('communities.post_detail', slug=community.slug, post_id=post.id) }}">Open</a>
+        </footer>
+      </article>
+      {% else %}
+      <article class="glass post-card"><h2>No discussions yet.</h2><p>The first post sets the tone. Make it useful.</p></article>
+      {% endfor %}
+    </div>
+    <aside class="glass panel members-aside">
+      <h2>People here</h2>
+      <ul class="people">
+        {% for row in community.memberships[:8] %}
+        <li><a href="{{ url_for('profile.view', username=row.user.username) }}">{{ avatar(row.user, 'sm') }} <span>{{ row.user.name }}</span> <em>{{ row.role }}</em></a></li>
+        {% endfor %}
+      </ul>
+      <a class="text-link" href="{{ url_for('communities.members', slug=community.slug) }}">View members {{ icon('arrow') }}</a>
+    </aside>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "app_base.html" if current_user.is_authenticated else "base.html" %}
+{% from "components/macros.html" import icon, pager %}
+{% block title %}{{ 'Groups' if kind == 'group' else 'Communities' }} · UnityWorks{% endblock %}
+{% block body_class %}{% if not current_user.is_authenticated %}landing{% endif %}{% endblock %}
+{% block shell %}
+{% if not current_user.is_authenticated %}
+{% include "components/public_nav.html" %}
+<main class="section public-list">
+  {% include "communities/_body.html" %}
+</main>
+{% else %}
+{{ super() }}
+{% endif %}
+{% endblock %}
+{% block content %}
+{% include "communities/_body.html" %}
+{% endblock %}

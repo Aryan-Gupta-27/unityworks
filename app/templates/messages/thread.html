@@ -1,0 +1,50 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, avatar %}
+{% block title %}{{ active.title_for(current_user) }} · Messages{% endblock %}
+{% block content %}
+<section class="page messages-page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Messages</p>
+      <h1>{{ active.title_for(current_user) }}</h1>
+    </div>
+  </header>
+  <div class="message-layout">
+    {% include "messages/_list.html" %}
+    <div class="glass thread-pane" id="thread" data-conversation="{{ active.id }}" data-after="{{ messages[-1].id if messages else 0 }}">
+      {% if has_earlier %}
+      <a class="text-link earlier" href="{{ url_for('messages.thread', conversation_id=active.id, before=messages[0].id) }}">Earlier messages</a>
+      {% endif %}
+      <div class="bubbles" id="bubbles">
+        {% for message in messages %}
+        <article class="bubble {% if message.sender_id == current_user.id %}mine{% endif %} {% if message.is_deleted %}deleted{% endif %}" data-id="{{ message.id }}">
+          <header>{{ message.sender.name }} · {{ message.created_at|dt }}{% if message.edited_at %} · edited{% endif %}</header>
+          <div class="rich">{% if message.is_deleted %}This message was deleted.{% else %}{{ message.body|rich }}{% endif %}</div>
+          {% if message.sender_id == current_user.id and not message.is_deleted %}
+          <details>
+            <summary>Edit</summary>
+            <form method="post" action="{{ url_for('messages.edit_message', conversation_id=active.id, message_id=message.id) }}">
+              {{ csrf() }}
+              <textarea name="body" rows="2" required>{{ message.body }}</textarea>
+              <button class="btn btn-soft btn-sm" type="submit">Save</button>
+            </form>
+          </details>
+          <form method="post" action="{{ url_for('messages.delete_message', conversation_id=active.id, message_id=message.id) }}">
+            {{ csrf() }}
+            <button class="text-btn" type="submit">Delete</button>
+          </form>
+          {% endif %}
+        </article>
+        {% else %}
+        <p class="muted">No messages yet. Send the first one.</p>
+        {% endfor %}
+      </div>
+      <form class="composer" method="post" action="{{ url_for('messages.send', conversation_id=active.id) }}">
+        {{ csrf() }}
+        <textarea name="body" rows="2" required maxlength="2000" placeholder="Write a message"></textarea>
+        <button class="btn btn-primary" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, pager, empty %}
+{% block title %}Notifications · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Notification center</p>
+      <h1>What needs you.</h1>
+    </div>
+    <form method="post" action="{{ url_for('notifications.read_all') }}">
+      {{ csrf() }}
+      <button class="btn btn-ghost" type="submit">Mark all read</button>
+    </form>
+  </header>
+  <div class="tabs">
+    <a class="{% if filt == 'all' %}active{% endif %}" href="{{ url_for('notifications.index', filter='all') }}">All <em>{{ counts.all }}</em></a>
+    <a class="{% if filt == 'unread' %}active{% endif %}" href="{{ url_for('notifications.index', filter='unread') }}">Unread <em>{{ counts.unread }}</em></a>
+    <a class="{% if filt == 'read' %}active{% endif %}" href="{{ url_for('notifications.index', filter='read') }}">Read <em>{{ counts.read }}</em></a>
+  </div>
+  <div class="stack">
+    {% for note in pagination.items %}
+    <article class="glass note-card {% if not note.is_read %}unread{% endif %}">
+      <div>
+        <span class="badge">{{ note.kind|replace('_', ' ') }}</span>
+        <h2><a href="{{ url_for('notifications.open_notification', nid=note.id) }}">{{ note.title }}</a></h2>
+        {% if note.body %}<p>{{ note.body }}</p>{% endif %}
+        <time>{{ note.created_at|dt }}</time>
+      </div>
+      {% if not note.is_read %}
+      <form method="post" action="{{ url_for('notifications.read_one', nid=note.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-soft btn-sm" type="submit">Mark read</button>
+      </form>
+      {% endif %}
+    </article>
+    {% else %}
+    {{ empty('Nothing in this tray', 'You are caught up.') }}
+    {% endfor %}
+  </div>
+  {{ pager(pagination) }}
+</section>
+{% endblock %}

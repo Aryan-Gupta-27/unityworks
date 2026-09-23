@@ -1,0 +1,43 @@
+{% macro csrf() %}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{% endmacro %}
+
+{% macro icon(name) %}
+<svg class="icon" aria-hidden="true"><use href="#i-{{ name }}"></use></svg>
+{% endmacro %}
+
+{% macro avatar(user, size='md') %}
+{% if user %}
+{% set src = avatar_url(user) %}
+<span class="avatar avatar-{{ size }}" style="--hue: {{ user.hue }}">
+  {% if src %}<img src="{{ src }}" alt="">{% else %}<span>{{ user.initials }}</span>{% endif %}
+</span>
+{% endif %}
+{% endmacro %}
+
+{% macro empty(title, body, href='', label='') %}
+<div class="empty">
+  <span class="empty-spark" aria-hidden="true">{{ icon('spark') }}</span>
+  <h3>{{ title }}</h3>
+  <p>{{ body }}</p>
+  {% if href %}<a class="btn btn-primary" href="{{ href }}">{{ label }}</a>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro pager(pagination) %}
+{% if pagination and pagination.pages > 1 %}
+<nav class="pager" aria-label="Pages">
+  {% if pagination.has_prev %}<a href="{{ page_url(pagination.prev_num) }}">Previous</a>{% else %}<span class="muted">Previous</span>{% endif %}
+  <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+  {% if pagination.has_next %}<a href="{{ page_url(pagination.next_num) }}">Next</a>{% else %}<span class="muted">Next</span>{% endif %}
+</nav>
+{% endif %}
+{% endmacro %}
+
+{% macro field(name, label, value='', type='text', error='', placeholder='', required=false, autocomplete='') %}
+<label class="field">
+  <span>{{ label }}</span>
+  <input class="{% if error %}invalid{% endif %}" type="{{ type }}" name="{{ name }}" value="{{ value }}" placeholder="{{ placeholder }}" {% if required %}required{% endif %} {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}>
+  {% if error %}<small class="field-error">{{ error }}</small>{% endif %}
+</label>
+{% endmacro %}

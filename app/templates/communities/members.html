@@ -1,0 +1,48 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import avatar, csrf %}
+{% block title %}Members · {{ community.name }}{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow"><a href="{{ url_for('communities.detail', slug=community.slug) }}">{{ community.name }}</a></p>
+      <h1>Members</h1>
+    </div>
+  </header>
+  {% if member and member.role in ['owner', 'moderator'] or current_user.is_admin %}
+  <form class="glass filters" method="post" action="{{ url_for('communities.invite', slug=community.slug) }}">
+    {{ csrf() }}
+    <input name="username" placeholder="Username to invite" required>
+    <input name="message" placeholder="Optional note" maxlength="240">
+    <button class="btn btn-primary" type="submit">Invite</button>
+  </form>
+  {% endif %}
+  <div class="glass table-wrap">
+    <table class="data">
+      <thead><tr><th>Student</th><th>Role</th><th>Joined</th><th></th></tr></thead>
+      <tbody>
+        {% for row in rows %}
+        <tr>
+          <td><a class="person-link" href="{{ url_for('profile.view', username=row.user.username) }}">{{ avatar(row.user, 'sm') }} {{ row.user.name }} <span>@{{ row.user.username }}</span></a></td>
+          <td><span class="badge">{{ row.role }}</span></td>
+          <td>{{ row.joined_at|dt }}</td>
+          <td class="row-actions">
+            {% if can_edit and row.role != 'owner' and row.user_id != current_user.id %}
+            <form method="post" action="{{ url_for('communities.set_role', slug=community.slug, user_id=row.user_id) }}">
+              {{ csrf() }}
+              <input type="hidden" name="role" value="{{ 'member' if row.role == 'moderator' else 'moderator' }}">
+              <button class="btn btn-soft btn-sm" type="submit">{{ 'Make member' if row.role == 'moderator' else 'Make moderator' }}</button>
+            </form>
+            <form method="post" action="{{ url_for('communities.remove_member', slug=community.slug, user_id=row.user_id) }}">
+              {{ csrf() }}
+              <button class="btn btn-danger btn-sm" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

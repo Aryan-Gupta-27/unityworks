@@ -1,0 +1,72 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import avatar %}
+{% block title %}Search · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Search</p>
+      <h1>Look across the workspace.</h1>
+    </div>
+  </header>
+  <form class="glass filters" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="People, communities, projects, resources, questions" autofocus>
+    <input type="hidden" name="type" value="{{ kind }}">
+    <button class="btn btn-primary" type="submit">Search</button>
+  </form>
+  <div class="tabs">
+    {% for key, label in [('all','All'), ('users','Users'), ('communities','Communities'), ('projects','Projects'), ('resources','Academic resources'), ('questions','Questions')] %}
+    <a class="{% if kind == key %}active{% endif %}" href="{{ url_for('search.index', q=q, type=key) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+  {% if not q %}
+  <article class="glass empty"><h3>Search the workspace</h3><p>Try a skill, a college, a community name, or a question.</p></article>
+  {% elif total == 0 %}
+  <article class="glass empty"><h3>No matches for “{{ q }}”</h3><p>Try a shorter word, or another category.</p></article>
+  {% else %}
+  {% if results.users %}
+  <section class="stack">
+    <h2>Users</h2>
+    {% for user in results.users %}
+    <a class="glass result" href="{{ url_for('profile.view', username=user.username) }}">
+      {{ avatar(user, 'sm') }}
+      <span><strong>{{ user.name }}</strong><em>@{{ user.username }} · {{ user.college or 'College not set' }}</em></span>
+    </a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.communities %}
+  <section class="stack">
+    <h2>Communities</h2>
+    {% for community in results.communities %}
+    <a class="glass result" href="{{ url_for('communities.detail', slug=community.slug) }}"><span><strong>{{ community.name }}</strong><em>{{ community.kind_label }} · {{ community.category }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.projects %}
+  <section class="stack">
+    <h2>Projects</h2>
+    {% for project in results.projects %}
+    <a class="glass result" href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><span><strong>{{ project.name }}</strong><em>{{ project.status }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.resources %}
+  <section class="stack">
+    <h2>Academic resources</h2>
+    {% for item in results.resources %}
+    <a class="glass result" href="{{ url_for('workspace.academics') }}"><span><strong>{{ item.title }}</strong><em>{{ item.subject }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% if results.questions %}
+  <section class="stack">
+    <h2>Questions</h2>
+    {% for item in results.questions %}
+    <a class="glass result" href="{{ url_for('workspace.question_detail', question_id=item.id) }}"><span><strong>{{ item.title }}</strong><em>{{ item.tags }}</em></span></a>
+    {% endfor %}
+  </section>
+  {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

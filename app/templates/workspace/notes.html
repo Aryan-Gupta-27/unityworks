@@ -1,0 +1,29 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, empty %}
+{% block title %}Notes · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Notes &amp; docs</p>
+      <h1>Your notes.</h1>
+      <p class="lede">Personal pages. Bold with **asterisks**, code with `backticks`.</p>
+    </div>
+    <a class="btn btn-primary" href="{{ url_for('workspace.note_new') }}">New note +</a>
+  </header>
+  <div class="card-grid">
+    {% for note in notes %}
+    <article class="glass note-tile">
+      <h2><a href="{{ url_for('workspace.note_edit', note_id=note.id) }}">{{ note.title }}</a></h2>
+      <div class="rich clamp">{{ note.body|rich }}</div>
+      <footer>
+        <time>{{ note.updated_at|ago }}</time>
+        <form method="post" action="{{ url_for('workspace.note_delete', note_id=note.id) }}">{{ csrf() }}<button class="text-btn" type="submit">Delete</button></form>
+      </footer>
+    </article>
+    {% else %}
+    {{ empty('No notes yet', 'A title and a few lines is enough to start.', url_for('workspace.note_new'), 'Write a note') }}
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

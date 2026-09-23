@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Not found · UnityWorks{% endblock %}
+{% block body_class %}landing{% endblock %}
+{% block shell %}
+<main class="error-wrap">
+  <div class="glass error-card">
+    <img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt="">
+    <p class="eyebrow">404</p>
+    <h1>That page isn't in the workspace.</h1>
+    <p>The link may be old, or the room may be private.</p>
+    <a class="btn btn-primary" href="{{ url_for('main.landing') }}">Back to UnityWorks</a>
+  </div>
+</main>
+{% endblock %}

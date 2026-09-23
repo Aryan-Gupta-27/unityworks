@@ -1,0 +1,57 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, empty %}
+{% block title %}Invitations · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Invitations</p>
+      <h1>Waiting on a yes.</h1>
+    </div>
+  </header>
+  <section class="glass panel">
+    <h2>Community &amp; group invites</h2>
+    {% for invite in incoming %}
+    <div class="invite-row">
+      <div>
+        <strong>{{ invite.community.name }}</strong>
+        <p>{{ invite.community.kind_label }} · from {{ invite.inviter.name }}{% if invite.message %} — {{ invite.message }}{% endif %}</p>
+      </div>
+      <form method="post" action="{{ url_for('communities.respond_invite', invite_id=invite.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% else %}
+    {{ empty('No invitations', "You're all caught up.") }}
+    {% endfor %}
+  </section>
+  <section class="glass panel">
+    <h2>Join requests you can approve</h2>
+    {% for invite in requests %}
+    <div class="invite-row">
+      <div><strong>{{ invite.inviter.name }}</strong><p>wants to join {{ invite.community.name }}</p></div>
+      <form method="post" action="{{ url_for('communities.respond_invite', invite_id=invite.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% else %}<p class="muted">No pending requests.</p>{% endfor %}
+  </section>
+  <section class="glass panel">
+    <h2>Project invitations</h2>
+    {% for invite in project_invites %}
+    <div class="invite-row">
+      <div><strong>{{ invite.project.name }}</strong><p>from {{ invite.inviter.name }}</p></div>
+      <form method="post" action="{{ url_for('workspace.project_respond', invite_id=invite.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% else %}<p class="muted">No project invitations.</p>{% endfor %}
+  </section>
+</section>
+{% endblock %}

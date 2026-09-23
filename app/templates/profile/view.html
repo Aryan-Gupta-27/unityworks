@@ -1,0 +1,61 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import icon, avatar, csrf %}
+{% block title %}{{ user.name }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <article class="glass profile-hero">
+    {{ avatar(user, 'xl') }}
+    <div>
+      <p class="eyebrow">{{ user.role|capitalize }} · {{ user.experience or 'Experience not set' }}</p>
+      <h1>{{ user.name }}</h1>
+      <p class="handle">@{{ user.username }}{% if user.headline %} · {{ user.headline }}{% endif %}</p>
+      <p class="lede">{{ user.bio or 'This student has not written a bio yet.' }}</p>
+      <div class="meta-row">
+        {% if user.college %}<span>{{ icon('cap') }} {{ user.college }}</span>{% endif %}
+        {% if user.program %}<span>{{ user.program }}</span>{% endif %}
+        {% if user.academic_year %}<span>{{ user.academic_year }}</span>{% endif %}
+      </div>
+    </div>
+    <div class="profile-actions">
+      {% if user.id == current_user.id %}
+      <a class="btn btn-primary" href="{{ url_for('profile.edit') }}">Edit profile</a>
+      {% elif user.status == 'active' %}
+      <form method="post" action="{{ url_for('messages.start') }}">
+        {{ csrf() }}
+        <input type="hidden" name="user_id" value="{{ user.id }}">
+        <button class="btn btn-primary" type="submit">Message {{ icon('arrow') }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </article>
+
+  <div class="profile-grid">
+    <section class="glass panel">
+      <h2>Skills</h2>
+      <div class="chips">
+        {% for skill in user.skill_list %}<span>{{ skill }}</span>{% else %}<p class="muted">No skills listed.</p>{% endfor %}
+      </div>
+      <h2>Interests</h2>
+      <div class="chips">
+        {% for item in user.interest_list %}<span>{{ item }}</span>{% else %}<p class="muted">No interests listed.</p>{% endfor %}
+      </div>
+      <h2>Education</h2>
+      <p>{{ user.education or 'Not added yet.' }}</p>
+    </section>
+    <section class="glass panel">
+      <h2>Communities</h2>
+      <ul class="mini-list plain">
+        {% for community in communities %}
+        <li><a href="{{ url_for('communities.detail', slug=community.slug) }}"><strong>{{ community.name }}</strong><em>{{ community.kind_label }}</em></a></li>
+        {% else %}<li class="muted">No communities yet.</li>{% endfor %}
+      </ul>
+      <h2>Projects</h2>
+      <ul class="mini-list plain">
+        {% for project in projects %}
+        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }}</em></a></li>
+        {% else %}<li class="muted">No projects yet.</li>{% endfor %}
+      </ul>
+    </section>
+  </div>
+</section>
+{% endblock %}

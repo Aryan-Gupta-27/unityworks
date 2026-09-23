@@ -1,0 +1,49 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import avatar, pager, csrf %}
+{% block title %}Find teammates · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Discover students</p>
+      <h1>Find a collaborator.</h1>
+      <p class="lede">Filter by skill, interest, college, or how far along someone is.</p>
+    </div>
+  </header>
+  <form class="glass filters wrap" method="get">
+    <input type="search" name="q" value="{{ q }}" placeholder="Name">
+    <input name="skill" value="{{ skill }}" placeholder="Skill">
+    <input name="interest" value="{{ interest }}" placeholder="Interest">
+    <input name="college" value="{{ college }}" placeholder="College" list="colleges">
+    <datalist id="colleges">
+      {% for name in colleges %}<option value="{{ name }}">{% endfor %}
+    </datalist>
+    <select name="experience">
+      <option value="">Any experience</option>
+      {% for level in levels %}
+      <option value="{{ level }}" {% if experience == level %}selected{% endif %}>{{ level }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-primary" type="submit">Filter</button>
+  </form>
+  <div class="card-grid">
+    {% for user in pagination.items %}
+    <article class="glass person-card">
+      <a href="{{ url_for('profile.view', username=user.username) }}">{{ avatar(user, 'lg') }}</a>
+      <h2><a href="{{ url_for('profile.view', username=user.username) }}">{{ user.name }}</a></h2>
+      <p class="muted">@{{ user.username }} · {{ user.experience or 'Experience open' }}</p>
+      <p>{{ user.headline or user.college or 'Student on UnityWorks' }}</p>
+      <div class="chips">{% for skill in user.skill_list[:3] %}<span>{{ skill }}</span>{% endfor %}</div>
+      <form method="post" action="{{ url_for('messages.start') }}">
+        {{ csrf() }}
+        <input type="hidden" name="user_id" value="{{ user.id }}">
+        <button class="btn btn-soft btn-sm" type="submit">Message</button>
+      </form>
+    </article>
+    {% else %}
+    <article class="glass person-card"><h2>No students match.</h2><p>Widen the filters. The right person may be one field over.</p></article>
+    {% endfor %}
+  </div>
+  {{ pager(pagination) }}
+</section>
+{% endblock %}

@@ -1,0 +1,176 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import icon, avatar, empty %}
+{% block title %}Dashboard · UnityWorks{% endblock %}
+{% block content %}
+<section class="dash">
+  <header class="dash-hello">
+    <p class="eyebrow">Your day, a little more connected</p>
+    <h1>Welcome back, {{ current_user.first_name }}.</h1>
+    <p class="lede">Your people, your conversations, your next step.</p>
+  </header>
+
+  <a class="glass glass-blue connect-banner" href="{{ url_for('profile.edit') if current_user.profile_incomplete else url_for('discover.index') }}">
+    <div>
+      <p class="eyebrow">{% if current_user.profile_incomplete %}Start with you{% else %}You're visible{% endif %}</p>
+      <h2>{% if current_user.profile_incomplete %}Good work starts with connection.{% else %}Good work starts with connection.{% endif %}</h2>
+      <p>{% if current_user.profile_incomplete %}Let other students get to know what you're learning and what sparks your curiosity.{% else %}Students can already find you by skills, interests, and college. Keep the profile honest.{% endif %}</p>
+      <span class="btn btn-primary btn-sm">{% if current_user.profile_incomplete %}Update your profile{% else %}Find teammates{% endif %} {{ icon('arrow') }}</span>
+    </div>
+    <span class="banner-arrow" aria-hidden="true">{{ icon('arrow') }}</span>
+  </a>
+
+  <div class="stat-row">
+    <a class="glass stat" href="{{ url_for('communities.index') }}">
+      <span>My communities</span>
+      <strong>{{ community_count }}</strong>
+      <em>Find your people {{ icon('arrow') }}</em>
+    </a>
+    <a class="glass stat" href="{{ url_for('communities.groups') }}">
+      <span>My groups</span>
+      <strong>{{ group_count }}</strong>
+      <em>Keep building together {{ icon('arrow') }}</em>
+    </a>
+    <a class="glass stat" href="{{ url_for('communities.invitations') }}">
+      <span>Group invitations</span>
+      <strong>{{ group_invites|length }}</strong>
+      <em>{% if group_invites %}Review invitations{% else %}You're all caught up{% endif %} {{ icon('arrow') }}</em>
+    </a>
+  </div>
+
+  <div class="quick-row">
+    <a class="btn btn-soft" href="{{ url_for('communities.create', kind='community') }}">Create community +</a>
+    <a class="btn btn-soft" href="{{ url_for('communities.create', kind='group') }}">Create group +</a>
+    <a class="btn btn-soft" href="{{ url_for('messages.inbox') }}">New conversation +</a>
+  </div>
+
+  {% if all_invites %}
+  <section class="glass invite-strip">
+    <header><h2>Waiting on you</h2></header>
+    {% for invite in all_invites %}
+    <div class="invite-row">
+      <div>
+        <strong>{{ invite.community.name }}</strong>
+        <p>{{ invite.inviter.name }} invited you{% if invite.message %} — {{ invite.message }}{% endif %}</p>
+      </div>
+      <form method="post" action="{{ url_for('communities.respond_invite', invite_id=invite.id) }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-primary btn-sm" name="status" value="accepted">Accept</button>
+        <button class="btn btn-ghost btn-sm" name="status" value="declined">Decline</button>
+      </form>
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <div class="dash-split">
+    <section class="glass panel">
+      <header class="panel-head">
+        <h2>Recent messages</h2>
+        <a href="{{ url_for('messages.inbox') }}">View all {{ icon('arrow') }}</a>
+      </header>
+      {% if recent_messages %}
+      <ul class="mini-list">
+        {% for message in recent_messages %}
+        <li>
+          <a href="{{ url_for('messages.thread', conversation_id=message.conversation_id) }}">
+            {{ avatar(message.sender, 'sm') }}
+            <span>
+              <strong>{{ message.sender.name }}</strong>
+              <em>{{ message.body }}</em>
+            </span>
+            <time>{{ message.created_at|ago }}</time>
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="dashed-empty">
+        <strong>Your conversations start here</strong>
+        <p>No messages yet. <a href="{{ url_for('discover.index') }}">Say hello to another student.</a></p>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="glass panel activity-panel">
+      <header class="panel-head"><h2>Recent activity</h2></header>
+      {% if activity %}
+      <ul class="activity-list">
+        {% for item in activity %}
+        <li>
+          <i></i>
+          <div>
+            {% if item.link %}<a href="{{ item.link }}">{{ item.summary }}</a>{% else %}<span>{{ item.summary }}</span>{% endif %}
+            <time>{{ item.created_at|dt }}</time>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      <a class="text-link" href="{{ url_for('workspace.activity') }}">View activity feed {{ icon('arrow') }}</a>
+      {% else %}
+      <div class="dashed-empty">
+        <strong>Nothing on the board yet</strong>
+        <p>Joins, posts, and uploads will collect here.</p>
+      </div>
+      {% endif %}
+      <span class="panel-spark" aria-hidden="true">{{ icon('spark') }}</span>
+    </section>
+  </div>
+
+  <div class="dash-quad">
+    <section class="glass panel">
+      <header class="panel-head"><h2>Projects</h2><a href="{{ url_for('workspace.projects') }}">Open</a></header>
+      {% if projects %}
+      <ul class="mini-list plain">
+        {% for project in projects %}
+        <li><a href="{{ url_for('workspace.project_detail', slug=project.slug) }}"><strong>{{ project.name }}</strong><em>{{ project.status }}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('No projects yet', 'Start one when the work has a name.', url_for('workspace.project_new'), 'Create a project') }}
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Communities</h2><a href="{{ url_for('communities.index') }}">Browse</a></header>
+      {% if communities %}
+      <ul class="mini-list plain">
+        {% for community in communities %}
+        <li><a href="{{ url_for('communities.detail', slug=community.slug) }}"><strong>{{ community.name }}</strong><em>{{ community.category }}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('No communities yet', 'Find a room that matches what you are studying.', url_for('communities.index'), 'Browse communities') }}
+      {% endif %}
+    </section>
+    <section class="glass panel">
+      <header class="panel-head"><h2>Notifications</h2><a href="{{ url_for('notifications.index') }}">Center</a></header>
+      {% if notifications %}
+      <ul class="mini-list plain">
+        {% for note in notifications %}
+        <li><a href="{{ url_for('notifications.open_notification', nid=note.id) }}"><strong>{{ note.title }}</strong><em>{{ note.created_at|ago }}</em></a></li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {{ empty('You are caught up', 'Invites, comments, and messages will show here.') }}
+      {% endif %}
+    </section>
+    <section class="glass panel profile-summary">
+      <header class="panel-head"><h2>Profile summary</h2><a href="{{ url_for('profile.edit') }}">Edit</a></header>
+      <div class="who">
+        {{ avatar(current_user, 'lg') }}
+        <div>
+          <strong>{{ current_user.name }}</strong>
+          <span>@{{ current_user.username }}</span>
+          <em>{{ current_user.college or 'Add your college' }}</em>
+        </div>
+      </div>
+      <div class="chips">
+        {% for skill in current_user.skill_list[:4] %}
+        <span>{{ skill }}</span>
+        {% else %}
+        <span class="ghost">Skills not added</span>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+</section>
+{% endblock %}

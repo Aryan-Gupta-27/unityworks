@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, avatar %}
+{% block title %}UnityWorks — Your Study Life. All in One Place.{% endblock %}
+{% block body_class %}landing{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main id="top">
+  <section class="hero-screen">
+    <svg class="hero-wave" viewBox="0 0 640 220" aria-hidden="true">
+      <path d="M-10 150C90 110 150 190 250 146s150-80 250-20 120 40 180 10" fill="none" stroke="rgba(120,176,255,0.38)" stroke-width="1.4"/>
+      <path d="M-10 182C110 140 170 214 280 168s160-70 250-8 110 36 170 8" fill="none" stroke="rgba(120,176,255,0.22)" stroke-width="1.2"/>
+    </svg>
+    <div class="hero">
+      <div class="hero-copy">
+        <p class="hero-pill">Learn <span>·</span> Collaborate <span>·</span> Build <span>·</span> Grow</p>
+        <h1>Your Study Life.<br><span>All in One Place.</span></h1>
+        <p class="hero-lede">UnityWorks is the all-in-one collaborative workspace for students to learn, communicate, collaborate, build projects and manage their academic journey — together.</p>
+        <div class="hero-cta">
+          {% if current_user.is_authenticated %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('dashboard.index') }}">Open dashboard {{ icon('arrow') }}</a>
+          {% else %}
+          <a class="btn btn-primary btn-lg" href="{{ url_for('auth.register') }}">Get Started {{ icon('arrow') }}</a>
+          {% endif %}
+          <a class="btn btn-ghost btn-lg" href="#features">Explore Features</a>
+        </div>
+        <div class="proof">
+          <div class="avatar-stack" aria-hidden="true">
+            <img src="{{ url_for('static', filename='img/avatars/aarav.jpg') }}" alt="">
+            <img src="{{ url_for('static', filename='img/avatars/mira.jpg') }}" alt="">
+            <img src="{{ url_for('static', filename='img/avatars/leo.jpg') }}" alt="">
+            <img src="{{ url_for('static', filename='img/avatars/sofia.jpg') }}" alt="">
+            <img src="{{ url_for('static', filename='img/avatars/kabir.jpg') }}" alt="">
+          </div>
+          <p>Join thousands of students<br>already on UnityWorks</p>
+        </div>
+      </div>
+
+      <div class="hero-stage" aria-hidden="true">
+        <div class="float-chip chip-study">{{ icon('users') }} Study Groups</div>
+        <div class="float-chip chip-chat">{{ icon('chat') }} Real-Time Chat</div>
+        <div class="float-chip chip-files">{{ icon('cloud') }} File Sharing</div>
+        <div class="float-chip chip-notes">{{ icon('note') }} Notes &amp; Docs</div>
+        <div class="float-chip chip-tasks">{{ icon('check') }} Tasks &amp; Tracking</div>
+        <div class="float-chip chip-projects">{{ icon('project') }} Projects</div>
+
+        <div class="hero-panel glass">
+          <div class="mock-side">
+            <div class="mock-logo"><img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt=""></div>
+            <span>{{ icon('home') }} Home</span>
+            <span>{{ icon('chat') }} Messages</span>
+            <span>{{ icon('project') }} Projects</span>
+            <span>{{ icon('users') }} Study Groups</span>
+            <span>{{ icon('note') }} Notes</span>
+            <span>{{ icon('folder') }} Files</span>
+            <span>{{ icon('check') }} Tasks</span>
+            <span>{{ icon('users') }} Communities</span>
+          </div>
+          <div class="mock-main">
+            <div class="mock-top">
+              <div>
+                <p>Good morning.</p>
+                <strong>Let's build something great! <i>✦</i></strong>
+              </div>
+              <div class="mock-tools">
+                {{ icon('bell') }}
+                <img src="{{ url_for('static', filename='img/avatars/mira.jpg') }}" alt="">
+              </div>
+            </div>
+            <div class="mock-grid">
+              <article><small>My Projects</small><b>3 active projects</b><em>→</em></article>
+              <article><small>Today's Tasks</small><b>5 pending</b><em>→</em></article>
+              <article><small>Study Groups</small><b>2 joined</b><em>→</em></article>
+              <article><small>Recent Files</small><b>12 new</b><em>→</em></article>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="journey" aria-label="How students use UnityWorks">
+      <article><span class="j-icon">{{ icon('users') }}</span><div><strong>Connect</strong><span>Build your network</span></div></article>
+      <i class="j-line"></i>
+      <article><span class="j-icon">{{ icon('group') }}</span><div><strong>Collaborate</strong><span>Work together</span></div></article>
+      <i class="j-line"></i>
+      <article><span class="j-icon">{{ icon('note') }}</span><div><strong>Create</strong><span>Share your ideas</span></div></article>
+      <i class="j-line"></i>
+      <article><span class="j-icon">{{ icon('target') }}</span><div><strong>Achieve</strong><span>Track your progress</span></div></article>
+      <i class="j-line"></i>
+      <article><span class="j-icon">{{ icon('chart') }}</span><div><strong>Grow</strong><span>Your future, together</span></div></article>
+    </section>
+    <a class="scroll-hint" href="#features"><span></span>Scroll to explore</a>
+  </section>
+
+  <section class="section" id="features">
+    <div class="section-head">
+      <p class="eyebrow">The workspace</p>
+      <h2>Everything a study life actually needs.</h2>
+      <p>Not another feed. A place to find people, talk, keep notes, and move a project forward without opening five other apps.</p>
+    </div>
+    <div class="feature-grid">
+      <article class="glass feature">
+        {{ icon('users') }}
+        <h3>Communities</h3>
+        <p>Interest groups, college clubs, and private study squads. Owners, moderators, and members — enforced on the server.</p>
+      </article>
+      <article class="glass feature">
+        {{ icon('chat') }}
+        <h3>Messages</h3>
+        <p>Direct conversations and small group chats, with history, unread counts, and the ability to edit what you just sent.</p>
+      </article>
+      <article class="glass feature">
+        {{ icon('note') }}
+        <h3>Notes &amp; files</h3>
+        <p>Personal notes and a file shelf for the PDFs, code, and outlines you keep coming back to.</p>
+      </article>
+      <article class="glass feature">
+        {{ icon('project') }}
+        <h3>Projects</h3>
+        <p>Name the work, invite collaborators, and assign the next task without leaving the workspace.</p>
+      </article>
+      <article class="glass feature">
+        {{ icon('search') }}
+        <h3>Discover</h3>
+        <p>Find students by skill, interest, college, or how far along they are. Search the rest of the platform the same way.</p>
+      </article>
+      <article class="glass feature">
+        {{ icon('bell') }}
+        <h3>Notifications</h3>
+        <p>Invitations, comments, messages, project invites, and task assignments land in one quiet center.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" id="communities">
+    <div class="section-head row">
+      <div>
+        <p class="eyebrow">Communities</p>
+        <h2>Rooms that already have a purpose.</h2>
+      </div>
+      <a class="btn btn-ghost" href="{{ url_for('communities.index') }}">Browse communities {{ icon('arrow') }}</a>
+    </div>
+    <div class="feature-grid">
+      {% for community in communities %}
+      <a class="glass feature community-tease" href="{{ url_for('communities.detail', slug=community.slug) if current_user.is_authenticated else url_for('auth.login', next=url_for('communities.detail', slug=community.slug)) }}">
+        <span class="badge">{{ community.category }}</span>
+        <h3>{{ community.name }}</h3>
+        <p>{{ community.description }}</p>
+      </a>
+      {% else %}
+      <article class="glass feature"><h3>Communities appear here once the workspace is awake.</h3></article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="section about-band" id="about">
+    <div class="glass about-card">
+      <img class="lockup" src="{{ url_for('static', filename='img/logo-lockup.png') }}" alt="Unity Works">
+      <div>
+        <p class="eyebrow">About</p>
+        <h2>A digital workspace for students, not another social network.</h2>
+        <p>UnityWorks holds the loop students already live: learn, communicate, collaborate, build, and track. Profiles, communities, messages, notes, files, and projects share one account and one quiet visual language.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Create your account {{ icon('arrow') }}</a>
+          <a class="btn btn-ghost" href="{{ url_for('main.about') }}">Read the story</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<footer class="site-footer">
+  <img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt="">
+  <strong>UnityWorks</strong>
+  <span>© 2026 · Learn, collaborate, build, grow.</span>
+</footer>
+{% endblock %}

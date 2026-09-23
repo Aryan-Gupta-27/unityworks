@@ -1,0 +1,15 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Ask · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head"><div><p class="eyebrow">Questions</p><h1>Ask a question</h1></div></header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <label class="field"><span>Title</span><input name="title" required maxlength="160" value="{{ form.get('title','') }}">{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+    <label class="field"><span>Details</span><textarea name="body" rows="6" required>{{ form.get('body','') }}</textarea>{% if errors.body %}<small class="field-error">{{ errors.body }}</small>{% endif %}</label>
+    <label class="field"><span>Tags</span><input name="tags" value="{{ form.get('tags','') }}" placeholder="flask, statistics"></label>
+    <button class="btn btn-primary" type="submit">Post question</button>
+  </form>
+</section>
+{% endblock %}

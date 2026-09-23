@@ -1,0 +1,14 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}{{ 'Edit note' if note else 'New note' }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head"><div><p class="eyebrow">Notes</p><h1>{{ 'Edit note' if note else 'New note' }}</h1></div></header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <label class="field"><span>Title</span><input name="title" required maxlength="140" value="{{ form.get('title', note.title if note else '') }}" class="{% if errors.title %}invalid{% endif %}">{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+    <label class="field"><span>Body</span><textarea name="body" rows="12">{{ form.get('body', note.body if note else '') }}</textarea></label>
+    <button class="btn btn-primary" type="submit">Save note</button>
+  </form>
+</section>
+{% endblock %}

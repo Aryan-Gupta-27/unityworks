@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+instance/*.db
+instance/uploads/avatars/*
+instance/uploads/files/*
+!instance/uploads/avatars/.gitkeep
+!instance/uploads/files/.gitkeep
+.DS_Store

@@ -1,0 +1,15 @@
+{% from "components/macros.html" import avatar %}
+<aside class="thread-list">
+  <form class="glass filters compact" method="get" action="{{ url_for('messages.inbox') if not active else url_for('messages.thread', conversation_id=active.id) }}">
+    <input type="search" name="q" value="{{ q }}" placeholder="Search messages">
+  </form>
+  {% for row in rows %}
+  <a class="thread-link {% if active and active.id == row.conversation.id %}active{% endif %} {% if row.unread %}unread{% endif %}" href="{{ url_for('messages.thread', conversation_id=row.conversation.id) }}">
+    <strong>{{ row.conversation.title_for(current_user) }}</strong>
+    <em>{{ row.last.body if row.last else 'No messages yet' }}</em>
+    {% if row.unread %}<b>{{ row.unread }}</b>{% endif %}
+  </a>
+  {% else %}
+  <p class="muted pad">No conversations match.</p>
+  {% endfor %}
+</aside>

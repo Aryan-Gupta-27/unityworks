@@ -1,0 +1,17 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Private · {{ community.name }}{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <article class="glass error-card">
+    <p class="eyebrow">Private {{ community.kind_label|lower }}</p>
+    <h1>{{ community.name }}</h1>
+    <p>Discussions stay inside the membership. Ask the owner to let you in.</p>
+    <form method="post" action="{{ url_for('communities.join', slug=community.slug) }}">
+      {{ csrf() }}
+      <label class="field"><span>Note to the owner</span><input name="message" maxlength="240" placeholder="Why you want in"></label>
+      <button class="btn btn-primary" type="submit">Request access</button>
+    </form>
+  </article>
+</section>
+{% endblock %}

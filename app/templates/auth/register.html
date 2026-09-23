@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, csrf %}
+{% block title %}Create account · UnityWorks{% endblock %}
+{% block body_class %}landing auth-page{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="auth-wrap">
+  <form class="glass auth-card" method="post" action="{{ url_for('auth.register') }}" novalidate>
+    {{ csrf() }}
+    <img class="lockup" src="{{ url_for('static', filename='img/logo-lockup.png') }}" alt="Unity Works">
+    <p class="eyebrow">Create account</p>
+    <h1>Start your study life here.</h1>
+    <label class="field">
+      <span>Name</span>
+      <input name="name" value="{{ form.get('name', '') }}" autocomplete="name" required placeholder="Aarav Shah" class="{% if errors.name %}invalid{% endif %}">
+      {% if errors.name %}<small class="field-error">{{ errors.name }}</small>{% endif %}
+    </label>
+    <label class="field">
+      <span>Username</span>
+      <input name="username" value="{{ form.get('username', '') }}" autocomplete="username" required placeholder="aarav" class="{% if errors.username %}invalid{% endif %}">
+      {% if errors.username %}<small class="field-error">{{ errors.username }}</small>{% endif %}
+    </label>
+    <label class="field">
+      <span>Email</span>
+      <input name="email" type="email" value="{{ form.get('email', '') }}" autocomplete="email" required placeholder="you@college.edu" class="{% if errors.email %}invalid{% endif %}">
+      {% if errors.email %}<small class="field-error">{{ errors.email }}</small>{% endif %}
+    </label>
+    <div class="split-fields">
+      <label class="field">
+        <span>Password</span>
+        <input name="password" type="password" autocomplete="new-password" required minlength="8" class="{% if errors.password %}invalid{% endif %}">
+      </label>
+      <label class="field">
+        <span>Confirm password</span>
+        <input name="confirm" type="password" autocomplete="new-password" required minlength="8">
+      </label>
+    </div>
+    {% if errors.password %}<small class="field-error">{{ errors.password }}</small>{% endif %}
+    <button class="btn btn-primary btn-block" type="submit">Create account {{ icon('arrow') }}</button>
+    <p class="auth-switch">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a></p>
+  </form>
+</main>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "app_base.html" %}
+{% block title %}Questions · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div><p class="eyebrow">Questions</p><h1>Ask the room.</h1></div>
+    <a class="btn btn-primary" href="{{ url_for('workspace.question_new') }}">Ask a question</a>
+  </header>
+  <div class="stack">
+    {% for question in questions %}
+    <a class="glass result" href="{{ url_for('workspace.question_detail', question_id=question.id) }}">
+      <span><strong>{{ question.title }}</strong><em>{{ question.author.name }} · {{ question.answers|length }} answers · {{ question.tags }}</em></span>
+    </a>
+    {% else %}
+    <article class="glass empty"><h3>No questions yet.</h3></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

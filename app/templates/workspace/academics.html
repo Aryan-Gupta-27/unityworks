@@ -1,0 +1,37 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Academics · UnityWorks{% endblock %}
+{% block content %}
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Academics</p>
+      <h1>Resources and the record.</h1>
+      <p class="lede">{{ current_user.education or 'Add your education on your profile so this page knows your program.' }}</p>
+    </div>
+    <a class="btn btn-ghost" href="{{ url_for('profile.edit') }}">Edit education</a>
+  </header>
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <div class="split-fields">
+      <label class="field"><span>Title</span><input name="title" required>{% if errors.title %}<small class="field-error">{{ errors.title }}</small>{% endif %}</label>
+      <label class="field"><span>Subject</span><input name="subject" required>{% if errors.subject %}<small class="field-error">{{ errors.subject }}</small>{% endif %}</label>
+    </div>
+    <label class="field"><span>Description</span><textarea name="description" rows="3"></textarea></label>
+    <label class="field"><span>Link</span><input name="link" placeholder="https://">{% if errors.link %}<small class="field-error">{{ errors.link }}</small>{% endif %}</label>
+    <button class="btn btn-primary" type="submit">Share resource</button>
+  </form>
+  <div class="card-grid">
+    {% for item in resources %}
+    <article class="glass community-card">
+      <span class="badge">{{ item.subject }}</span>
+      <h2>{% if item.link %}<a href="{{ item.link }}" target="_blank" rel="noopener noreferrer">{{ item.title }}</a>{% else %}{{ item.title }}{% endif %}</h2>
+      <p>{{ item.description }}</p>
+      <span class="muted">{{ item.author.name }}</span>
+    </article>
+    {% else %}
+    <article class="glass community-card"><h2>No resources yet.</h2></article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

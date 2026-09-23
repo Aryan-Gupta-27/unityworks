@@ -1,0 +1,58 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf, avatar %}
+{% block title %}Edit profile · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Profile</p>
+      <h1>Edit your profile</h1>
+      <p class="lede">This is what other students see when they are looking for a collaborator.</p>
+    </div>
+    {{ avatar(current_user, 'lg') }}
+  </header>
+  <form class="glass form-card" method="post" enctype="multipart/form-data">
+    {{ csrf() }}
+    <input type="hidden" name="action" value="profile">
+    <label class="field">
+      <span>Profile picture</span>
+      <input type="file" name="avatar" accept="image/png,image/jpeg,image/webp">
+      {% if errors.avatar %}<small class="field-error">{{ errors.avatar }}</small>{% endif %}
+    </label>
+    <label class="field"><span>Headline</span><input name="headline" maxlength="140" value="{{ current_user.headline or '' }}" placeholder="What are you learning right now?"></label>
+    <label class="field"><span>Bio</span><textarea name="bio" maxlength="500" rows="4">{{ current_user.bio or '' }}</textarea>{% if errors.bio %}<small class="field-error">{{ errors.bio }}</small>{% endif %}</label>
+    <label class="field"><span>Skills</span><input name="skills" value="{{ current_user.skills or '' }}" placeholder="Python, Flask, SQL">{% if errors.skills %}<small class="field-error">{{ errors.skills }}</small>{% endif %}</label>
+    <label class="field"><span>Interests</span><input name="interests" value="{{ current_user.interests or '' }}" placeholder="Research, Hackathons"></label>
+    <label class="field"><span>Education</span><input name="education" value="{{ current_user.education or '' }}"></label>
+    <div class="split-fields">
+      <label class="field"><span>College / institution</span><input name="college" value="{{ current_user.college or '' }}"></label>
+      <label class="field"><span>Program</span><input name="program" value="{{ current_user.program or '' }}"></label>
+    </div>
+    <div class="split-fields">
+      <label class="field"><span>Academic year</span><input name="academic_year" value="{{ current_user.academic_year or '' }}" placeholder="Year 3"></label>
+      <label class="field">
+        <span>Experience</span>
+        <select name="experience">
+          <option value="">Select</option>
+          {% for level in levels %}
+          <option value="{{ level }}" {% if current_user.experience == level %}selected{% endif %}>{{ level }}</option>
+          {% endfor %}
+        </select>
+      </label>
+    </div>
+    <button class="btn btn-primary" type="submit">Save profile</button>
+  </form>
+
+  <form class="glass form-card" method="post">
+    {{ csrf() }}
+    <input type="hidden" name="action" value="password">
+    <h2>Change password</h2>
+    <label class="field"><span>Current password</span><input type="password" name="current_password" autocomplete="current-password">{% if errors.current_password %}<small class="field-error">{{ errors.current_password }}</small>{% endif %}</label>
+    <div class="split-fields">
+      <label class="field"><span>New password</span><input type="password" name="new_password" autocomplete="new-password" minlength="8">{% if errors.new_password %}<small class="field-error">{{ errors.new_password }}</small>{% endif %}</label>
+      <label class="field"><span>Confirm new password</span><input type="password" name="confirm_password" autocomplete="new-password" minlength="8"></label>
+    </div>
+    <button class="btn btn-ghost" type="submit">Update password</button>
+  </form>
+</section>
+{% endblock %}

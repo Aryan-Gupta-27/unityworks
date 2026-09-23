@@ -1,0 +1,78 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import avatar, csrf %}
+{% block title %}{{ post.title }} · UnityWorks{% endblock %}
+{% block content %}
+<section class="page narrow">
+  <p class="eyebrow"><a href="{{ url_for('communities.detail', slug=community.slug) }}">{{ community.name }}</a></p>
+  <article class="glass post-card">
+    <header>
+      {{ avatar(post.author, 'md') }}
+      <div>
+        <strong>{{ post.author.name }}</strong>
+        <time>{{ post.created_at|dt }}{% if post.updated_at and post.updated_at != post.created_at %} · edited{% endif %}</time>
+      </div>
+    </header>
+    <h1>{{ post.title }}</h1>
+    <div class="rich">{{ post.body|rich }}</div>
+    <footer class="post-actions">
+      {% if member %}
+      <form method="post" action="{{ url_for('communities.like_post', post_id=post.id) }}">
+        {{ csrf() }}
+        <button class="btn btn-soft btn-sm" type="submit">{{ 'Liked' if liked else 'Like' }} · {{ likes }}</button>
+      </form>
+      {% else %}
+      <span class="muted">{{ likes }} likes</span>
+      {% endif %}
+      {% if post.author_id == current_user.id or can_moderate %}
+      <form method="post" action="{{ url_for('communities.delete_post', post_id=post.id) }}" onsubmit="return confirm('Delete this post?');">
+        {{ csrf() }}
+        <button class="btn btn-danger btn-sm" type="submit">Delete</button>
+      </form>
+      {% endif %}
+    </footer>
+  </article>
+
+  {% if post.author_id == current_user.id %}
+  <details class="glass details">
+    <summary>Edit your post</summary>
+    <form method="post" action="{{ url_for('communities.edit_post', post_id=post.id) }}">
+      {{ csrf() }}
+      <label class="field"><span>Title</span><input name="title" value="{{ post.title }}" required maxlength="140"></label>
+      <label class="field"><span>Body</span><textarea name="body" rows="6" required>{{ post.body }}</textarea></label>
+      <button class="btn btn-primary" type="submit">Save</button>
+    </form>
+  </details>
+  {% endif %}
+
+  <section class="glass panel">
+    <h2>Comments</h2>
+    {% for comment in post.comments %}
+    <article class="comment">
+      {{ avatar(comment.author, 'sm') }}
+      <div>
+        <strong>{{ comment.author.name }}</strong>
+        <time>{{ comment.created_at|ago }}</time>
+        <div class="rich">{{ comment.body|rich }}</div>
+        {% if comment.author_id == current_user.id or can_moderate %}
+        <form method="post" action="{{ url_for('communities.delete_comment', comment_id=comment.id) }}">
+          {{ csrf() }}
+          <button class="text-btn" type="submit">Delete</button>
+        </form>
+        {% endif %}
+      </div>
+    </article>
+    {% else %}
+    <p class="muted">No comments yet.</p>
+    {% endfor %}
+    {% if member %}
+    <form method="post" action="{{ url_for('communities.comment', post_id=post.id) }}">
+      {{ csrf() }}
+      <label class="field"><span>Add a comment</span><textarea name="body" rows="3" required maxlength="2000"></textarea></label>
+      <button class="btn btn-primary" type="submit">Comment</button>
+    </form>
+    {% else %}
+    <p class="muted">Join the {{ community.kind_label|lower }} to comment.</p>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

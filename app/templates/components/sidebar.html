@@ -1,0 +1,52 @@
+{% from "components/macros.html" import icon, avatar %}
+<aside class="sidebar" id="sidebar">
+  <a class="side-brand" href="{{ url_for('dashboard.index') }}">
+    <img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt="">
+    <span>UnityWorks</span>
+  </a>
+  <p class="side-label">My space</p>
+  <nav class="side-nav" aria-label="Workspace">
+    {% set ep = request.endpoint or '' %}
+    {% set nav_kind = community.kind if community is defined and community else (kind if kind is defined else '') %}
+    <a class="nav-item {% if ep == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">{{ icon('grid') }} Dashboard</a>
+    <a class="nav-item {% if (ep.startswith('communities.') or ep == 'communities.index') and nav_kind != 'group' and ep != 'communities.groups' %}active{% endif %}" href="{{ url_for('communities.index') }}">{{ icon('users') }} Communities</a>
+    <a class="nav-item {% if ep == 'communities.groups' or nav_kind == 'group' %}active{% endif %}" href="{{ url_for('communities.groups') }}">{{ icon('group') }} Groups</a>
+    <a class="nav-item {% if ep.startswith('messages.') %}active{% endif %}" href="{{ url_for('messages.inbox') }}">
+      {{ icon('chat') }} Messages
+      {% if nav_counts.messages %}<em class="count">{{ nav_counts.messages }}</em>{% endif %}
+    </a>
+    <a class="nav-item {% if ep.startswith('workspace.note') %}active{% endif %}" href="{{ url_for('workspace.notes') }}">{{ icon('note') }} Notes</a>
+    <a class="nav-item {% if ep.startswith('workspace.file') or ep in ['workspace.files', 'workspace.upload_file', 'workspace.download_file', 'workspace.delete_file'] %}active{% endif %}" href="{{ url_for('workspace.files') }}">{{ icon('folder') }} Files</a>
+    <a class="nav-item {% if 'project' in ep %}active{% endif %}" href="{{ url_for('workspace.projects') }}">{{ icon('project') }} Projects</a>
+    <a class="nav-item {% if ep == 'workspace.events' %}active{% endif %}" href="{{ url_for('workspace.events') }}">{{ icon('event') }} Events</a>
+    <a class="nav-item {% if ep == 'workspace.ideas' %}active{% endif %}" href="{{ url_for('workspace.ideas') }}">{{ icon('idea') }} Project ideas</a>
+    <a class="nav-item {% if ep.startswith('discover.') %}active{% endif %}" href="{{ url_for('discover.index') }}">{{ icon('users') }} Find teammates</a>
+    <a class="nav-item" href="{{ url_for('profile.view', username=current_user.username) }}">{{ icon('bag') }} My portfolio</a>
+    <a class="nav-item {% if ep.startswith('workspace.question') %}active{% endif %}" href="{{ url_for('workspace.questions') }}">{{ icon('help') }} Questions</a>
+    <a class="nav-item {% if ep == 'workspace.academics' %}active{% endif %}" href="{{ url_for('workspace.academics') }}">{{ icon('cap') }} Academics</a>
+    <a class="nav-item {% if ep == 'search.index' %}active{% endif %}" href="{{ url_for('search.index') }}">{{ icon('search') }} Search</a>
+    <a class="nav-item {% if ep.startswith('notifications.') %}active{% endif %}" href="{{ url_for('notifications.index') }}">
+      {{ icon('bell') }} Notifications
+      {% if nav_counts.notifications %}<em class="count">{{ nav_counts.notifications }}</em>{% endif %}
+    </a>
+    <a class="nav-item {% if ep == 'workspace.activity' %}active{% endif %}" href="{{ url_for('workspace.activity') }}">{{ icon('activity') }} Activity</a>
+    <a class="nav-item {% if ep == 'profile.view' and request.view_args.get('username') == current_user.username %}active{% endif %}" href="{{ url_for('profile.view', username=current_user.username) }}">{{ icon('user') }} My profile</a>
+    <a class="nav-item {% if ep == 'profile.edit' %}active{% endif %}" href="{{ url_for('profile.edit') }}">{{ icon('edit') }} Edit profile</a>
+    {% if current_user.is_admin %}
+    <a class="nav-item {% if ep.startswith('admin.') %}active{% endif %}" href="{{ url_for('admin.index') }}">{{ icon('target') }} Admin</a>
+    {% endif %}
+  </nav>
+  <div class="side-user">
+    {{ avatar(current_user, 'sm') }}
+    <div>
+      <strong>{{ current_user.name }}</strong>
+      <span>@{{ current_user.username }}</span>
+    </div>
+    <form method="post" action="{{ url_for('auth.logout') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="icon-btn" type="submit" aria-label="Log out">{{ icon('logout') }}</button>
+    </form>
+  </div>
+  <span class="side-spark" aria-hidden="true">{{ icon('spark') }}</span>
+</aside>
+<div class="sidebar-backdrop" data-close-sidebar></div>

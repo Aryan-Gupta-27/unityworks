@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon, csrf %}
+{% block title %}Sign in · UnityWorks{% endblock %}
+{% block body_class %}landing auth-page{% endblock %}
+{% block shell %}
+{% include "components/public_nav.html" %}
+<main class="auth-wrap">
+  <form class="glass auth-card" method="post" action="{{ url_for('auth.login') }}">
+    {{ csrf() }}
+    <input type="hidden" name="next" value="{{ next }}">
+    <img class="lockup" src="{{ url_for('static', filename='img/logo-lockup.png') }}" alt="Unity Works">
+    <p class="eyebrow">Welcome back</p>
+    <h1>Sign in to your workspace.</h1>
+    {% if errors.form %}<p class="form-banner">{{ errors.form }}</p>{% endif %}
+    <label class="field">
+      <span>Email or username</span>
+      <input name="identifier" value="{{ form.get('identifier', '') }}" autocomplete="username" required placeholder="aarav or aarav@unityworks.app">
+    </label>
+    <label class="field">
+      <span>Password</span>
+      <span class="password-wrap">
+        <input name="password" type="password" autocomplete="current-password" required>
+        <button type="button" class="ghost-inline" data-toggle-password>Show</button>
+      </span>
+    </label>
+    <label class="check">
+      <input type="checkbox" name="remember">
+      <span>Keep me signed in on this device</span>
+    </label>
+    <button class="btn btn-primary btn-block" type="submit">Sign in {{ icon('arrow') }}</button>
+    <p class="auth-switch">New here? <a href="{{ url_for('auth.register') }}">Create an account</a></p>
+  </form>
+  <aside class="glass demo-card">
+    <p class="eyebrow">Demo workspace</p>
+    <p>Look around with a seeded student or the administrator. These accounts exist only in this local workspace.</p>
+    <button type="button" class="demo-fill" data-ident="aarav@unityworks.app" data-password="Student#2026"><strong>Aarav Shah</strong><span>Student · aarav@unityworks.app</span></button>
+    <button type="button" class="demo-fill" data-ident="admin@unityworks.app" data-password="UnityAdmin#2026"><strong>Unity Admin</strong><span>Admin · admin@unityworks.app</span></button>
+  </aside>
+</main>
+{% endblock %}

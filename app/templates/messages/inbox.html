@@ -1,0 +1,36 @@
+{% extends "app_base.html" %}
+{% from "components/macros.html" import csrf %}
+{% block title %}Messages · UnityWorks{% endblock %}
+{% block content %}
+<section class="page messages-page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Messages</p>
+      <h1>Your conversations</h1>
+    </div>
+  </header>
+  <div class="glass composer-row">
+    <form method="post" action="{{ url_for('messages.start') }}">
+      {{ csrf() }}
+      <input name="username" placeholder="Username" required>
+      <button class="btn btn-primary" type="submit">New conversation +</button>
+    </form>
+    <details>
+      <summary>New group chat</summary>
+      <form method="post" action="{{ url_for('messages.create_group') }}">
+        {{ csrf() }}
+        <input name="title" placeholder="Group title" required>
+        <input name="usernames" placeholder="usernames, comma separated" required>
+        <button class="btn btn-soft" type="submit">Create</button>
+      </form>
+    </details>
+  </div>
+  <div class="message-layout">
+    {% include "messages/_list.html" %}
+    <div class="glass thread-pane empty-pane">
+      <strong>Your conversations start here</strong>
+      <p>No conversation open. Say hello to another student from Discover, or start one above.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

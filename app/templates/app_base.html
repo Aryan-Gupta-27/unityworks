@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "components/macros.html" import icon %}
+{% block body_class %}app{% endblock %}
+{% block shell %}
+<div class="app-shell">
+  {% include "components/sidebar.html" %}
+  <div class="app-main">
+    <button class="menu-btn floating-menu" type="button" data-open-sidebar aria-label="Open menu">{{ icon('grid') }}</button>
+    {% block content %}{% endblock %}
+    <footer class="app-footer">
+      <img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt="">
+      <span>UnityWorks</span>
+      <span class="dot">·</span>
+      <span>Learn · Collaborate · Build · Grow</span>
+    </footer>
+  </div>
+</div>
+{% endblock %}

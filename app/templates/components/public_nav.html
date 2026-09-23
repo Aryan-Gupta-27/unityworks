@@ -1,0 +1,25 @@
+{% from "components/macros.html" import icon %}
+<header class="public-nav">
+  <a class="brand" href="{{ url_for('main.landing') }}">
+    <img src="{{ url_for('static', filename='img/logo-mark.png') }}" alt="">
+    <span>UnityWorks</span>
+  </a>
+  <nav class="public-links" aria-label="Primary">
+    <a href="{{ url_for('main.landing') }}#top" class="{% if request.endpoint == 'main.landing' %}active{% endif %}">Home</a>
+    <a href="{{ url_for('main.landing') }}#features">Features</a>
+    <a href="{{ url_for('communities.index') }}" class="{% if request.endpoint in ['communities.index', 'communities.groups'] %}active{% endif %}">Communities</a>
+    <a href="{{ url_for('main.about') }}" class="{% if request.endpoint == 'main.about' %}active{% endif %}">About</a>
+  </nav>
+  <div class="nav-actions">
+    <button class="theme-toggle" type="button" aria-label="Toggle light">
+      {{ icon('sun') }}
+      {{ icon('moon') }}
+    </button>
+    {% if current_user.is_authenticated %}
+    <a class="btn btn-primary" href="{{ url_for('dashboard.index') }}">Open dashboard {{ icon('arrow') }}</a>
+    {% else %}
+    <a class="btn btn-primary" href="{{ url_for('auth.register') }}">Join UnityWorks {{ icon('arrow') }}</a>
+    {% endif %}
+    <button class="menu-btn public-menu" type="button" aria-label="Open menu">{{ icon('grid') }}</button>
+  </div>
+</header>
